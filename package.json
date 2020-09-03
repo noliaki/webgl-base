@@ -1,0 +1,27 @@
+{
+  "name": "webgl-base",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noliaki/webgl-base.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/noliaki/webgl-base/issues"
+  },
+  "homepage": "https://github.com/noliaki/webgl-base#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "@noliaki/eslint-config-typescript-prettier": "^0.2.0",
+    "@noliaki/prettier-config": "0.0.1",
+    "eslint": "^7.8.1",
+    "prettier": "^2.1.1",
+    "typescript": "^4.0.2"
+  }
+}

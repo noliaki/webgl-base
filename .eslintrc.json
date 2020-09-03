@@ -1,0 +1,3 @@
+{
+  "extends": ["@noliaki/eslint-config-typescript-prettier"]
+}
