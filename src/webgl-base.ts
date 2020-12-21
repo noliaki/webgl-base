@@ -76,42 +76,32 @@ type ConstructorArgs = {
   height?: number
 }
 
-export class WebGlBase {
-  public canvas: HTMLCanvasElement
-  public context: WebGLRenderingContext
-  private clearColor: [number, number, number, number]
-  private vertexShader: WebGLShader
-  private fragmentShader: WebGLShader
-  private program: WebGLProgram
-  private uniformMap: Map<
-    string,
-    { location: WebGLUniformLocation; type: UniformType }
-  > = new Map<string, { location: WebGLUniformLocation; type: UniformType }>()
+type UniformData = {
+  location: WebGLUniformLocation
+  type: UniformType
+}
 
-  private textureMap: Map<
-    string,
-    {
-      location: WebGLUniformLocation
-      index: number
-    }
-  > = new Map<
-    string,
-    {
-      location: WebGLUniformLocation
-      index: number
-    }
-  >()
+type TextureData = {
+  location: WebGLUniformLocation
+  index: number
+}
+
+export class WebGlBase {
+  public readonly canvas: HTMLCanvasElement
+  public readonly context: WebGLRenderingContext
+  private clearColor: [number, number, number, number]
+  private vertexShader: WebGLShader | null = null
+  private fragmentShader: WebGLShader | null = null
+  private program: WebGLProgram | null = null
+  private uniformMap: Map<string, UniformData> = new Map<string, UniformData>()
+
+  private textureMap: Map<string, TextureData> = new Map<string, TextureData>()
 
   private textureIndexMap: Map<string, number> = new Map<string, number>()
   private textureIndex = 0
 
-  constructor({
-    canvas,
-    clearColor = [0, 0, 0, 1],
-    width,
-    height,
-  }: ConstructorArgs) {
-    this.canvas = canvas || document.createElement('canvas')
+  private constructor({ canvas, clearColor, width, height }: ConstructorArgs) {
+    this.canvas = canvas
     this.context = (this.canvas.getContext('webgl') ||
       this.canvas.getContext('experimental-webgl')) as WebGLRenderingContext
 
@@ -121,8 +111,22 @@ export class WebGlBase {
     this.context.enable(this.context.DEPTH_TEST)
     this.context.depthFunc(this.context.LEQUAL)
 
-    this.resize(width || window.innerWidth, height || window.innerHeight)
+    this.resize(width, height)
     this.clear()
+  }
+
+  static createBase({
+    canvas = document.createElement('canvas'),
+    clearColor = [0, 0, 0, 1],
+    width = window.innerWidth,
+    height = window.innerHeight,
+  }: ConstructorArgs = {}): WebGlBase {
+    return new WebGlBase({
+      canvas,
+      clearColor,
+      width,
+      height,
+    })
   }
 
   clear(): WebGlBase {
@@ -139,6 +143,7 @@ export class WebGlBase {
     this.canvas.width = width
     this.canvas.height = height
     this.context.viewport(0, 0, width, height)
+    this.context.clear(this.context.COLOR_BUFFER_BIT)
 
     return this
   }
@@ -233,7 +238,7 @@ export class WebGlBase {
     texture: HTMLImageElement | HTMLCanvasElement
   }): WebGlBase {
     const createdTexture: WebGLTexture | null = this.context.createTexture()
-    const { index } = this.getTexture(name)
+    const { index } = this.getTextureByName(name)
 
     this.context.activeTexture(this.context[`TEXTURE${index}`])
     this.context.bindTexture(this.context.TEXTURE_2D, createdTexture)
@@ -255,7 +260,7 @@ export class WebGlBase {
     name: string,
     texture: HTMLImageElement | HTMLCanvasElement
   ): WebGlBase {
-    const { location, index } = this.getTexture(name)
+    const { location, index } = this.getTextureByName(name)
 
     this.context.bindTexture(this.context.TEXTURE_2D, texture)
     this.context.texParameteri(
@@ -309,10 +314,14 @@ export class WebGlBase {
     return this.createShader(src, this.context.FRAGMENT_SHADER)
   }
 
-  private setUniform({ location, value, type }) {
-    if (/^Matrix/i.test(type)) {
+  private setUniform({
+    location,
+    value,
+    type,
+  }: UniformData & { value: UniformValue }) {
+    if (type.startsWith('Matrix')) {
       this.context[`uniform${type}`](location, false, value)
-    } else if (/v$/.test(type) && typeof value !== 'number') {
+    } else if (type.endsWith('v') && typeof value !== 'number') {
       this.context[`uniform${type}`](location, ...value)
     } else {
       this.context[`uniform${type}`](location, value)
@@ -321,17 +330,12 @@ export class WebGlBase {
     return this
   }
 
-  private getTexture(
-    name: string
-  ): {
-    location: WebGLUniformLocation
-    index: number
-  } {
+  private getTextureByName(name: string): TextureData {
     if (this.textureMap.has(name)) {
       return this.textureMap.get(name)
     }
 
-    const o = {
+    const o: TextureData = {
       location: this.getUniformLocation(name),
       index: this.getTextureIndex(name),
     }
@@ -342,6 +346,6 @@ export class WebGlBase {
   }
 
   private getTextureIndex(name: string): number {
-    return this.textureIndexMap.get(name) || ++this.textureIndex
+    return this.textureIndexMap.get(name) || this.textureIndex++
   }
 }
