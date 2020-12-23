@@ -214,6 +214,84 @@ export class WebGlBase {
     return this.context.getUniformLocation(this.program, name)
   }
 
+  getAttribLocation(name: string): number {
+    if (this.program === null) {
+      throw new Error('program is not created')
+    }
+
+    return this.context.getAttribLocation(this.program, name)
+  }
+
+  enableVertexAttribArrayByName(name: string): WebGlBase {
+    this.context.enableVertexAttribArray(this.getAttribLocation(name))
+
+    return this
+  }
+
+  vertexAttribPointerByName({
+    name,
+    size,
+    type = this.context.FLOAT,
+    normalized = false,
+    stride = 0,
+    offset = 0,
+  }: {
+    name: string
+    size: GLint
+    type?: GLenum
+    normalized?: GLboolean
+    stride?: GLsizei
+    offset?: GLintptr
+  }): WebGlBase {
+    this.enableVertexAttribArrayByName(name)
+    this.context.vertexAttribPointer(
+      this.getAttribLocation(name),
+      size,
+      type,
+      normalized,
+      stride,
+      offset
+    )
+
+    return this
+  }
+
+  drawArrays({
+    mode = this.context.TRIANGLES,
+    first = 0,
+    count = 3,
+  }: {
+    mode?: GLenum
+    first?: GLint
+    count?: GLsizei
+  } = {}): WebGlBase {
+    this.context.drawArrays(mode, first, count)
+
+    return this
+  }
+
+  drawElements({
+    mode = this.context.TRIANGLES,
+    count = 3,
+    type = this.context.UNSIGNED_SHORT,
+    offset = 0,
+  }: {
+    mode?: GLenum
+    count?: GLsizei
+    type?: GLenum
+    offset?: GLintptr
+  } = {}): WebGlBase {
+    this.context.drawElements(mode, count, type, offset)
+
+    return this
+  }
+
+  flush(): WebGlBase {
+    this.context.flush()
+
+    return this
+  }
+
   updateUniform({
     name,
     value,
@@ -343,6 +421,26 @@ export class WebGlBase {
     this.textureMap.set(name, o)
 
     return o
+  }
+
+  bindBufferByData(data: BufferSource): WebGlBase {
+    const vbo = this.createVbo(data)
+    this.context.bindBuffer(this.context.ARRAY_BUFFER, vbo)
+
+    return this
+  }
+
+  private createVbo(data: BufferSource): WebGLBuffer {
+    const vbo = this.context.createBuffer()
+    this.context.bindBuffer(this.context.ARRAY_BUFFER, vbo)
+    this.context.bufferData(
+      this.context.ARRAY_BUFFER,
+      data,
+      this.context.STATIC_DRAW
+    )
+    this.context.bindBuffer(this.context.ARRAY_BUFFER, null)
+
+    return vbo
   }
 
   private getTextureIndex(name: string): number {
