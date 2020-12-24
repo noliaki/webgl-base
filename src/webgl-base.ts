@@ -129,12 +129,13 @@ export class WebGlBase {
     })
   }
 
-  clear(): WebGlBase {
+  clear(
+    mask: GLbitfield = this.context.COLOR_BUFFER_BIT |
+      this.context.DEPTH_BUFFER_BIT
+  ): WebGlBase {
     this.context.clearColor(...this.clearColor)
     this.context.clearDepth(1.0)
-    this.context.clear(
-      this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT
-    )
+    this.context.clear(mask)
 
     return this
   }
