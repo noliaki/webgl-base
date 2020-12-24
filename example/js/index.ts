@@ -5,9 +5,9 @@ import { Vector3, Matrix4 } from 'matrixgl'
 
 const start: number = Date.now()
 
-const camera = new Vector3(0, 5, -5)
+const camera = new Vector3(0, 0, -5)
 const lookAt = new Vector3(0, 0, 0)
-const cameraUpDirection = new Vector3(0, 4, 0)
+const cameraUpDirection = new Vector3(0, 1, 0)
 
 const view = Matrix4.lookAt(camera, lookAt, cameraUpDirection)
 const perspective = Matrix4.perspective({
@@ -50,13 +50,25 @@ const base = WebGlBase.createBase({
     type: 'Matrix4fv',
   })
   .bindBufferByData(
-    new Float32Array([0.0, 2.0, 0.0, 4.0, 0.0, 0.0, -3.0, 0.0, 0.0])
+    new Float32Array([
+      /* eslint-disable */
+      // 1
+      0.0, 1.0, 0.0,
+      1.0, 0.0, 0.0,
+      -1.0, 0.0, 0.0,
+      // 2
+      0.0, 2.0, 0.0,
+      1.0, 1.0, 0.0,
+      -1.0, 1.0, 0.0,
+      /* eslint-enable */
+    ])
   )
   .vertexAttribPointerByName({
     name: 'position',
     size: 3,
   })
   .drawArrays()
+  .drawArrays({ first: 3 })
   .flush()
 
 function update() {
@@ -66,7 +78,7 @@ function update() {
       name: 'uTime',
       value: Date.now() - start,
     })
-    .drawArrays()
+    .drawArrays({ count: 3 })
     .flush()
 
   window.requestAnimationFrame(() => {
@@ -74,4 +86,4 @@ function update() {
   })
 }
 
-update()
+// update()
