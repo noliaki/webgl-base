@@ -86,6 +86,19 @@ type TextureData = {
   index: number
 }
 
+const DRAW_MODE = {
+  POINTS: 'POINTS',
+  LINE_STRIP: 'LINE_STRIP',
+  LINE_LOOP: 'LINE_LOOP',
+  LINES: 'LINES',
+  TRIANGLE_STRIP: 'TRIANGLE_STRIP',
+  TRIANGLE_FAN: 'TRIANGLE_FAN',
+  TRIANGLES: 'TRIANGLES',
+} as const
+
+/* eslint-disable-next-line */
+type DRAW_MODE = typeof DRAW_MODE[keyof typeof DRAW_MODE]
+
 export class WebGlBase {
   public readonly canvas: HTMLCanvasElement
   public readonly context: WebGLRenderingContext
@@ -258,15 +271,15 @@ export class WebGlBase {
   }
 
   drawArrays({
-    mode = this.context.TRIANGLES,
+    mode,
     first = 0,
     count = 3,
   }: {
-    mode?: GLenum
+    mode: DRAW_MODE
     first?: GLint
     count?: GLsizei
-  } = {}): WebGlBase {
-    this.context.drawArrays(mode, first, count)
+  }): WebGlBase {
+    this.context.drawArrays(this.context[mode], first, count)
 
     return this
   }
