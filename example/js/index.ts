@@ -67,8 +67,10 @@ const base = WebGlBase.createBase({
     name: 'position',
     size: 3,
   })
-  .drawArrays()
-  .drawArrays({ first: 3 })
+  .drawArrays({
+    mode: 'POINTS',
+  })
+  // .drawArrays({ first: 3 })
   .flush()
 
 function update() {
@@ -78,7 +80,7 @@ function update() {
       name: 'uTime',
       value: Date.now() - start,
     })
-    .drawArrays({ count: 3 })
+    .drawArrays({ mode: 'POINTS' })
     .flush()
 
   window.requestAnimationFrame(() => {

@@ -9,4 +9,5 @@ void main(void){
     position.z,
     1.0
   );
+  gl_PointSize = 20.0;
 }
