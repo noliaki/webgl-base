@@ -19,17 +19,6 @@ type Usage =
   | 'DYNAMIC_COPY'
   | 'STREAM_COPY'
 
-type Mode =
-  | 'POINTS'
-  | 'LINE_STRIP'
-  | 'LINE_LOOP'
-  | 'LINES'
-  | 'TRIANGLE_STRIP'
-  | 'TRIANGLE_FAN'
-  | 'TRIANGLES'
-
-type DrayElType = 'UNSIGNED_BYTE' | 'UNSIGNED_SHORT' | 'UNSIGNED_INT'
-
 type UniformArgs = {
   name: string
   value: UniformValue
@@ -86,18 +75,33 @@ type TextureData = {
   index: number
 }
 
-const DRAW_MODE = {
-  POINTS: 'POINTS',
-  LINE_STRIP: 'LINE_STRIP',
-  LINE_LOOP: 'LINE_LOOP',
-  LINES: 'LINES',
-  TRIANGLE_STRIP: 'TRIANGLE_STRIP',
-  TRIANGLE_FAN: 'TRIANGLE_FAN',
-  TRIANGLES: 'TRIANGLES',
-} as const
+type DrawMode =
+  | 'POINTS'
+  | 'LINE_STRIP'
+  | 'LINE_LOOP'
+  | 'LINES'
+  | 'TRIANGLE_STRIP'
+  | 'TRIANGLE_FAN'
+  | 'TRIANGLES'
 
-/* eslint-disable-next-line */
-type DRAW_MODE = typeof DRAW_MODE[keyof typeof DRAW_MODE]
+type DataType =
+  | 'BYTE'
+  | 'SHORT'
+  | 'UNSIGNED_BYTE'
+  | 'UNSIGNED_SHORT'
+  | 'FLOAT'
+  | 'HALF_FLOAT'
+
+type DrawType = 'UNSIGNED_BYTE' | 'UNSIGNED_SHORT' | 'UNSIGNED_INT'
+
+export const bytesType = {
+  BYTE: 1,
+  SHORT: 2,
+  UNSIGNED_BYTE: 1,
+  UNSIGNED_SHORT: 2,
+  FLOAT: 4,
+  HALF_FLOAT: 2,
+} as const
 
 export class WebGlBase {
   public readonly canvas: HTMLCanvasElement
@@ -257,7 +261,6 @@ export class WebGlBase {
     stride?: GLsizei
     offset?: GLintptr
   }): WebGlBase {
-    this.enableVertexAttribArrayByName(name)
     this.context.vertexAttribPointer(
       this.getAttribLocation(name),
       size,
@@ -267,6 +270,8 @@ export class WebGlBase {
       offset
     )
 
+    this.enableVertexAttribArrayByName(name)
+
     return this
   }
 
@@ -275,7 +280,7 @@ export class WebGlBase {
     first = 0,
     count = 3,
   }: {
-    mode: DRAW_MODE
+    mode: DrawMode
     first?: GLint
     count?: GLsizei
   }): WebGlBase {
@@ -285,17 +290,22 @@ export class WebGlBase {
   }
 
   drawElements({
-    mode = this.context.TRIANGLES,
-    count = 3,
-    type = this.context.UNSIGNED_SHORT,
+    mode,
+    count,
+    type,
     offset = 0,
   }: {
-    mode?: GLenum
-    count?: GLsizei
-    type?: GLenum
-    offset?: GLintptr
-  } = {}): WebGlBase {
-    this.context.drawElements(mode, count, type, offset)
+    mode: DrawMode
+    count: GLsizei
+    type: DrawType
+    offset: GLintptr
+  }): WebGlBase {
+    this.context.drawElements(
+      this.context[mode],
+      count,
+      this.context[type],
+      offset
+    )
 
     return this
   }
@@ -329,7 +339,7 @@ export class WebGlBase {
     name: string
     texture: HTMLImageElement | HTMLCanvasElement
   }): WebGlBase {
-    const createdTexture: WebGLTexture | null = this.context.createTexture()
+    const createdTexture: WebGLTexture = this.context.createTexture()
     const { index } = this.getTextureByName(name)
 
     this.context.activeTexture(this.context[`TEXTURE${index}`])

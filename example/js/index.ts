@@ -1,4 +1,4 @@
-import { WebGlBase } from '../../src/webgl-base'
+import { WebGlBase, bytesType } from '../../src/webgl-base'
 import vertexShader from './vertex-shader.glsl'
 import fragmentShader from './fragment-shader.glsl'
 import { Vector3, Matrix4 } from 'matrixgl'
@@ -53,22 +53,40 @@ const base = WebGlBase.createBase({
     new Float32Array([
       /* eslint-disable */
       // 1
-      0.0, 1.0, 0.0,
-      1.0, 0.0, 0.0,
-      -1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, // position
+      1.0, 0.0, 0.0, 1.0, // color
+      1.0, 0.0, 0.0, // position
+      0.0, 1.0, 0.0, 1.0, // color
+      -1.0, 0.0, 0.0, // position
+      0.0, 0.0, 1.0, 1.0, // color
+
       // 2
-      0.0, 2.0, 0.0,
-      1.0, 1.0, 0.0,
-      -1.0, 1.0, 0.0,
+      0.0, 2.0, 0.0, // position
+      1.0, 0.0, 1.0, 1.0, // color
+      1.0, 1.0, 0.0, // position
+      0.0, 1.0, 0.0, 1.0, // color
+      -1.0, 1.0, 0.0, // position
+      0.0, 0.5, 1.0, 1.0, // color
       /* eslint-enable */
     ])
   )
   .vertexAttribPointerByName({
     name: 'position',
     size: 3,
+    stride: (3 + 4) * bytesType.FLOAT,
+  })
+  .vertexAttribPointerByName({
+    name: 'aColor',
+    size: 4,
+    offset: 3 * 4,
+    stride: (3 + 4) * bytesType.FLOAT,
   })
   .drawArrays({
-    mode: 'POINTS',
+    mode: 'TRIANGLES',
+  })
+  .drawArrays({
+    mode: 'TRIANGLES',
+    first: 3,
   })
   // .drawArrays({ first: 3 })
   .flush()
