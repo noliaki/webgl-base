@@ -1,3 +1,5 @@
+import { UniformManager } from './UniformManager'
+
 type Target =
   | 'ARRAY_BUFFER'
   | 'ELEMENT_ARRAY_BUFFER'
@@ -94,7 +96,7 @@ type DataType =
 
 type DrawType = 'UNSIGNED_BYTE' | 'UNSIGNED_SHORT' | 'UNSIGNED_INT'
 
-export const bytesType = {
+export const bytesByType = {
   BYTE: 1,
   SHORT: 2,
   UNSIGNED_BYTE: 1,
@@ -106,6 +108,9 @@ export const bytesType = {
 export class WebGlBase {
   public readonly canvas: HTMLCanvasElement
   public readonly context: WebGLRenderingContext
+
+  uniform: UniformManager
+
   private clearColor: [number, number, number, number]
   private vertexShader: WebGLShader | null = null
   private fragmentShader: WebGLShader | null = null
@@ -113,9 +118,10 @@ export class WebGlBase {
   private uniformMap: Map<string, UniformData> = new Map<string, UniformData>()
 
   private textureMap: Map<string, TextureData> = new Map<string, TextureData>()
-
   private textureIndexMap: Map<string, number> = new Map<string, number>()
   private textureIndex = 0
+
+  private drawHistory: any[] = []
 
   private constructor({ canvas, clearColor, width, height }: ConstructorArgs) {
     this.canvas = canvas
@@ -203,34 +209,36 @@ export class WebGlBase {
 
     this.context.useProgram(this.program)
 
+    this.uniform = UniformManager.create(this.context, this.program)
+
     return this
   }
 
-  registerUniform({ name, value, type }: UniformArgs): WebGlBase {
-    const location: WebGLUniformLocation | null = this.getUniformLocation(name)
+  // registerUniform({ name, value, type }: UniformArgs): WebGlBase {
+  //   const location: WebGLUniformLocation | null = this.getUniformLocation(name)
 
-    if (location === null) {
-      throw new Error('location is not found')
-    }
+  //   if (location === null) {
+  //     throw new Error('location is not found')
+  //   }
 
-    this.uniformMap.set(name, {
-      location,
-      type,
-    })
+  //   this.uniformMap.set(name, {
+  //     location,
+  //     type,
+  //   })
 
-    return this.updateUniform({
-      name,
-      value,
-    })
-  }
+  //   return this.updateUniform({
+  //     name,
+  //     value,
+  //   })
+  // }
 
-  getUniformLocation(name: string): WebGLUniformLocation | null {
-    if (this.program === null) {
-      throw new Error('program is not created')
-    }
+  // getUniformLocation(name: string): WebGLUniformLocation | null {
+  //   if (this.program === null) {
+  //     throw new Error('program is not created')
+  //   }
 
-    return this.context.getUniformLocation(this.program, name)
-  }
+  //   return this.context.getUniformLocation(this.program, name)
+  // }
 
   getAttribLocation(name: string): number {
     if (this.program === null) {
@@ -279,12 +287,23 @@ export class WebGlBase {
     mode,
     first = 0,
     count = 3,
+    addHistory = true,
   }: {
     mode: DrawMode
     first?: GLint
     count?: GLsizei
+    addHistory?: boolean
   }): WebGlBase {
     this.context.drawArrays(this.context[mode], first, count)
+
+    if (addHistory) {
+      this.drawHistory.push({
+        method: 'Arrays',
+        mode,
+        first,
+        count,
+      })
+    }
 
     return this
   }
@@ -294,11 +313,13 @@ export class WebGlBase {
     count,
     type,
     offset = 0,
+    addHistory = true,
   }: {
     mode: DrawMode
     count: GLsizei
     type: DrawType
     offset: GLintptr
+    addHistory?: boolean
   }): WebGlBase {
     this.context.drawElements(
       this.context[mode],
@@ -306,6 +327,39 @@ export class WebGlBase {
       this.context[type],
       offset
     )
+
+    if (addHistory) {
+      this.drawHistory.push({
+        method: 'Elements',
+        mode,
+        count,
+        type,
+        offset,
+      })
+    }
+
+    return this
+  }
+
+  drawUpdate(): this {
+    this.drawHistory.forEach((item) => {
+      if (item.method === 'Elements') {
+        this.drawElements({
+          mode: item.mode,
+          count: item.count,
+          type: item.type,
+          offset: item.offset,
+          addHistory: false,
+        })
+      } else if (item.method === 'Arrays') {
+        this.drawArrays({
+          mode: item.mode,
+          first: item.first,
+          count: item.count,
+          addHistory: false,
+        })
+      }
+    })
 
     return this
   }
@@ -316,80 +370,80 @@ export class WebGlBase {
     return this
   }
 
-  updateUniform({
-    name,
-    value,
-  }: {
-    name: string
-    value: UniformValue
-  }): WebGlBase {
-    const { location, type } = this.uniformMap.get(name)
+  // updateUniform({
+  //   name,
+  //   value,
+  // }: {
+  //   name: string
+  //   value: UniformValue
+  // }): WebGlBase {
+  //   const { location, type } = this.uniformMap.get(name)
 
-    return this.setUniform({
-      location,
-      value,
-      type,
-    })
-  }
+  //   return this.setUniform({
+  //     location,
+  //     value,
+  //     type,
+  //   })
+  // }
 
-  registerTexture({
-    name,
-    texture,
-  }: {
-    name: string
-    texture: HTMLImageElement | HTMLCanvasElement
-  }): WebGlBase {
-    const createdTexture: WebGLTexture = this.context.createTexture()
-    const { index } = this.getTextureByName(name)
+  // registerTexture({
+  //   name,
+  //   texture,
+  // }: {
+  //   name: string
+  //   texture: HTMLImageElement | HTMLCanvasElement
+  // }): WebGlBase {
+  //   const createdTexture: WebGLTexture = this.context.createTexture()
+  //   const { index } = this.getTextureByName(name)
 
-    this.context.activeTexture(this.context[`TEXTURE${index}`])
-    this.context.bindTexture(this.context.TEXTURE_2D, createdTexture)
-    this.context.texImage2D(
-      this.context.TEXTURE_2D,
-      0,
-      this.context.RGBA,
-      this.context.RGBA,
-      this.context.UNSIGNED_BYTE,
-      texture
-    )
-    this.context.generateMipmap(this.context.TEXTURE_2D)
-    this.context.bindTexture(this.context.TEXTURE_2D, null)
+  //   this.context.activeTexture(this.context[`TEXTURE${index}`])
+  //   this.context.bindTexture(this.context.TEXTURE_2D, createdTexture)
+  //   this.context.texImage2D(
+  //     this.context.TEXTURE_2D,
+  //     0,
+  //     this.context.RGBA,
+  //     this.context.RGBA,
+  //     this.context.UNSIGNED_BYTE,
+  //     texture
+  //   )
+  //   this.context.generateMipmap(this.context.TEXTURE_2D)
+  //   this.context.bindTexture(this.context.TEXTURE_2D, null)
 
-    return this.updateTexture(name, texture)
-  }
+  //   return this.updateTexture(name, texture)
+  // }
 
-  updateTexture(
-    name: string,
-    texture: HTMLImageElement | HTMLCanvasElement
-  ): WebGlBase {
-    const { location, index } = this.getTextureByName(name)
+  // updateTexture(
+  //   name: string,
+  //   texture: HTMLImageElement | HTMLCanvasElement
+  // ): WebGlBase {
+  //   const { location, index } = this.getTextureByName(name)
 
-    this.context.bindTexture(this.context.TEXTURE_2D, texture)
-    this.context.texParameteri(
-      this.context.TEXTURE_2D,
-      this.context.TEXTURE_MIN_FILTER,
-      this.context.NEAREST
-    )
-    this.context.texParameteri(
-      this.context.TEXTURE_2D,
-      this.context.TEXTURE_MAG_FILTER,
-      this.context.NEAREST
-    )
-    this.context.texParameteri(
-      this.context.TEXTURE_2D,
-      this.context.TEXTURE_WRAP_S,
-      this.context.REPEAT
-    )
-    this.context.texParameteri(
-      this.context.TEXTURE_2D,
-      this.context.TEXTURE_WRAP_T,
-      this.context.REPEAT
-    )
+  //   this.context.bindTexture(this.context.TEXTURE_2D, texture)
+  //   this.context.texParameteri(
+  //     this.context.TEXTURE_2D,
+  //     this.context.TEXTURE_MIN_FILTER,
+  //     this.context.NEAREST
+  //   )
+  //   this.context.texParameteri(
+  //     this.context.TEXTURE_2D,
+  //     this.context.TEXTURE_MAG_FILTER,
+  //     this.context.NEAREST
+  //   )
+  //   this.context.texParameteri(
+  //     this.context.TEXTURE_2D,
+  //     this.context.TEXTURE_WRAP_S,
+  //     this.context.REPEAT
+  //   )
+  //   this.context.texParameteri(
+  //     this.context.TEXTURE_2D,
+  //     this.context.TEXTURE_WRAP_T,
+  //     this.context.REPEAT
+  //   )
 
-    this.context.uniform1i(location, index)
+  //   this.context.uniform1i(location, index)
 
-    return this
-  }
+  //   return this
+  // }
 
   private createShader(src: string, type: number): WebGLShader {
     const shader: WebGLShader | null = this.context.createShader(type)
@@ -416,36 +470,36 @@ export class WebGlBase {
     return this.createShader(src, this.context.FRAGMENT_SHADER)
   }
 
-  private setUniform({
-    location,
-    value,
-    type,
-  }: UniformData & { value: UniformValue }) {
-    if (type.startsWith('Matrix')) {
-      this.context[`uniform${type}`](location, false, value)
-    } else if (type.endsWith('v') && typeof value !== 'number') {
-      this.context[`uniform${type}`](location, ...value)
-    } else {
-      this.context[`uniform${type}`](location, value)
-    }
+  // private setUniform({
+  //   location,
+  //   value,
+  //   type,
+  // }: UniformData & { value: UniformValue }) {
+  //   if (type.startsWith('Matrix')) {
+  //     this.context[`uniform${type}`](location, false, value)
+  //   } else if (type.endsWith('v') && typeof value !== 'number') {
+  //     this.context[`uniform${type}`](location, ...value)
+  //   } else {
+  //     this.context[`uniform${type}`](location, value)
+  //   }
 
-    return this
-  }
+  //   return this
+  // }
 
-  private getTextureByName(name: string): TextureData {
-    if (this.textureMap.has(name)) {
-      return this.textureMap.get(name)
-    }
+  // private getTextureByName(name: string): TextureData {
+  //   if (this.textureMap.has(name)) {
+  //     return this.textureMap.get(name)
+  //   }
 
-    const o: TextureData = {
-      location: this.getUniformLocation(name),
-      index: this.getTextureIndex(name),
-    }
+  //   const o: TextureData = {
+  //     location: this.getUniformLocation(name),
+  //     index: this.getTextureIndex(name),
+  //   }
 
-    this.textureMap.set(name, o)
+  //   this.textureMap.set(name, o)
 
-    return o
-  }
+  //   return o
+  // }
 
   bindBufferByData(data: BufferSource): WebGlBase {
     const vbo = this.createVbo(data)
