@@ -1,4 +1,5 @@
 import { UniformManager } from './UniformManager'
+import { AttributeManager } from './AttributeManager'
 
 type Target =
   | 'ARRAY_BUFFER'
@@ -108,13 +109,14 @@ export const bytesByType = {
 export class WebGlBase {
   public readonly canvas: HTMLCanvasElement
   public readonly context: WebGLRenderingContext
+  public program: WebGLProgram | null = null
 
-  uniform: UniformManager
+  public uniform: UniformManager
+  public attr: AttributeManager
 
   private clearColor: [number, number, number, number]
   private vertexShader: WebGLShader | null = null
   private fragmentShader: WebGLShader | null = null
-  private program: WebGLProgram | null = null
   private uniformMap: Map<string, UniformData> = new Map<string, UniformData>()
 
   private textureMap: Map<string, TextureData> = new Map<string, TextureData>()
@@ -192,10 +194,6 @@ export class WebGlBase {
 
     this.program = this.context.createProgram()
 
-    if (!this.program) {
-      throw new Error('can not create program')
-    }
-
     this.context.attachShader(this.program, this.vertexShader)
     this.context.attachShader(this.program, this.fragmentShader)
 
@@ -209,76 +207,8 @@ export class WebGlBase {
 
     this.context.useProgram(this.program)
 
-    this.uniform = UniformManager.create(this.context, this.program)
-
-    return this
-  }
-
-  // registerUniform({ name, value, type }: UniformArgs): WebGlBase {
-  //   const location: WebGLUniformLocation | null = this.getUniformLocation(name)
-
-  //   if (location === null) {
-  //     throw new Error('location is not found')
-  //   }
-
-  //   this.uniformMap.set(name, {
-  //     location,
-  //     type,
-  //   })
-
-  //   return this.updateUniform({
-  //     name,
-  //     value,
-  //   })
-  // }
-
-  // getUniformLocation(name: string): WebGLUniformLocation | null {
-  //   if (this.program === null) {
-  //     throw new Error('program is not created')
-  //   }
-
-  //   return this.context.getUniformLocation(this.program, name)
-  // }
-
-  getAttribLocation(name: string): number {
-    if (this.program === null) {
-      throw new Error('program is not created')
-    }
-
-    return this.context.getAttribLocation(this.program, name)
-  }
-
-  enableVertexAttribArrayByName(name: string): WebGlBase {
-    this.context.enableVertexAttribArray(this.getAttribLocation(name))
-
-    return this
-  }
-
-  vertexAttribPointerByName({
-    name,
-    size,
-    type = this.context.FLOAT,
-    normalized = false,
-    stride = 0,
-    offset = 0,
-  }: {
-    name: string
-    size: GLint
-    type?: GLenum
-    normalized?: GLboolean
-    stride?: GLsizei
-    offset?: GLintptr
-  }): WebGlBase {
-    this.context.vertexAttribPointer(
-      this.getAttribLocation(name),
-      size,
-      type,
-      normalized,
-      stride,
-      offset
-    )
-
-    this.enableVertexAttribArrayByName(name)
+    this.uniform = UniformManager.create(this)
+    this.attr = AttributeManager.create(this)
 
     return this
   }
@@ -370,81 +300,6 @@ export class WebGlBase {
     return this
   }
 
-  // updateUniform({
-  //   name,
-  //   value,
-  // }: {
-  //   name: string
-  //   value: UniformValue
-  // }): WebGlBase {
-  //   const { location, type } = this.uniformMap.get(name)
-
-  //   return this.setUniform({
-  //     location,
-  //     value,
-  //     type,
-  //   })
-  // }
-
-  // registerTexture({
-  //   name,
-  //   texture,
-  // }: {
-  //   name: string
-  //   texture: HTMLImageElement | HTMLCanvasElement
-  // }): WebGlBase {
-  //   const createdTexture: WebGLTexture = this.context.createTexture()
-  //   const { index } = this.getTextureByName(name)
-
-  //   this.context.activeTexture(this.context[`TEXTURE${index}`])
-  //   this.context.bindTexture(this.context.TEXTURE_2D, createdTexture)
-  //   this.context.texImage2D(
-  //     this.context.TEXTURE_2D,
-  //     0,
-  //     this.context.RGBA,
-  //     this.context.RGBA,
-  //     this.context.UNSIGNED_BYTE,
-  //     texture
-  //   )
-  //   this.context.generateMipmap(this.context.TEXTURE_2D)
-  //   this.context.bindTexture(this.context.TEXTURE_2D, null)
-
-  //   return this.updateTexture(name, texture)
-  // }
-
-  // updateTexture(
-  //   name: string,
-  //   texture: HTMLImageElement | HTMLCanvasElement
-  // ): WebGlBase {
-  //   const { location, index } = this.getTextureByName(name)
-
-  //   this.context.bindTexture(this.context.TEXTURE_2D, texture)
-  //   this.context.texParameteri(
-  //     this.context.TEXTURE_2D,
-  //     this.context.TEXTURE_MIN_FILTER,
-  //     this.context.NEAREST
-  //   )
-  //   this.context.texParameteri(
-  //     this.context.TEXTURE_2D,
-  //     this.context.TEXTURE_MAG_FILTER,
-  //     this.context.NEAREST
-  //   )
-  //   this.context.texParameteri(
-  //     this.context.TEXTURE_2D,
-  //     this.context.TEXTURE_WRAP_S,
-  //     this.context.REPEAT
-  //   )
-  //   this.context.texParameteri(
-  //     this.context.TEXTURE_2D,
-  //     this.context.TEXTURE_WRAP_T,
-  //     this.context.REPEAT
-  //   )
-
-  //   this.context.uniform1i(location, index)
-
-  //   return this
-  // }
-
   private createShader(src: string, type: number): WebGLShader {
     const shader: WebGLShader | null = this.context.createShader(type)
 
@@ -469,37 +324,6 @@ export class WebGlBase {
   private createFragmentShader(src: string): WebGLShader {
     return this.createShader(src, this.context.FRAGMENT_SHADER)
   }
-
-  // private setUniform({
-  //   location,
-  //   value,
-  //   type,
-  // }: UniformData & { value: UniformValue }) {
-  //   if (type.startsWith('Matrix')) {
-  //     this.context[`uniform${type}`](location, false, value)
-  //   } else if (type.endsWith('v') && typeof value !== 'number') {
-  //     this.context[`uniform${type}`](location, ...value)
-  //   } else {
-  //     this.context[`uniform${type}`](location, value)
-  //   }
-
-  //   return this
-  // }
-
-  // private getTextureByName(name: string): TextureData {
-  //   if (this.textureMap.has(name)) {
-  //     return this.textureMap.get(name)
-  //   }
-
-  //   const o: TextureData = {
-  //     location: this.getUniformLocation(name),
-  //     index: this.getTextureIndex(name),
-  //   }
-
-  //   this.textureMap.set(name, o)
-
-  //   return o
-  // }
 
   bindBufferByData(data: BufferSource): WebGlBase {
     const vbo = this.createVbo(data)

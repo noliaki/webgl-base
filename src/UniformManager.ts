@@ -1,3 +1,5 @@
+import { WebGlBase } from './webgl-base'
+
 type UniformType =
   | '1i'
   | '2i'
@@ -43,24 +45,23 @@ type UniformValue =
   | number[]
 
 export class UniformManager {
+  private readonly base: WebGlBase
   private readonly context: WebGLRenderingContext
   private readonly program: WebGLProgram
   private uniformMap: Map<string, UniformData> = new Map<string, UniformData>()
 
-  private constructor(context: WebGLRenderingContext, program: WebGLProgram) {
-    this.context = context
-    this.program = program
+  private constructor(base: WebGlBase) {
+    this.base = base
+    this.context = base.context
+    this.program = base.program
   }
 
-  static create(
-    context: WebGLRenderingContext,
-    program: WebGLProgram
-  ): UniformManager {
-    return new UniformManager(context, program)
+  static create(base: WebGlBase): UniformManager {
+    return new UniformManager(base)
   }
 
-  register({ name, value, type }: UniformArgs): this {
-    const location: WebGLUniformLocation = this.getLocation(name)
+  register({ name, value, type }: UniformArgs): WebGlBase {
+    const location: WebGLUniformLocation = this.getLocation({ name })
 
     if (!this.uniformMap.has(name)) {
       this.uniformMap.set(name, {
@@ -72,7 +73,7 @@ export class UniformManager {
     return this.set({ location, value, type })
   }
 
-  update({ name, value }: { name: string; value: UniformValue }): this {
+  update({ name, value }: { name: string; value: UniformValue }): WebGlBase {
     if (!this.uniformMap.has(name)) {
       throw new Error(`\`${name}\` is not registered`)
     }
@@ -90,7 +91,7 @@ export class UniformManager {
     location,
     value,
     type,
-  }: UniformData & { value: UniformValue }): this {
+  }: UniformData & { value: UniformValue }): WebGlBase {
     if (type.startsWith('Matrix')) {
       this.context[`uniform${type}`](location, false, value)
     } else if (type.endsWith('v') && typeof value !== 'number') {
@@ -99,14 +100,20 @@ export class UniformManager {
       this.context[`uniform${type}`](location, value)
     }
 
-    return this
+    return this.base
   }
 
-  private getLocation(name: string): WebGLUniformLocation {
-    if (this.program === null) {
+  private getLocation({
+    name,
+    program = this.program,
+  }: {
+    name: string
+    program?: WebGLProgram
+  }): WebGLUniformLocation {
+    if (program === null) {
       throw new Error('program is not created')
     }
 
-    return this.context.getUniformLocation(this.program, name)
+    return this.context.getUniformLocation(program, name)
   }
 }

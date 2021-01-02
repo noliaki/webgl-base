@@ -34,19 +34,62 @@ const base = WebGlBase.createBase({
   canvas: document.getElementById('c') as HTMLCanvasElement,
   // width: 300,
   // height: 300,
-}).createProgram({
-  vertexShader,
-  fragmentShader,
 })
-
-console.log(
-  base.uniform.register({
+  .createProgram({
+    vertexShader,
+    fragmentShader,
+  })
+  .uniform.register({
     name: 'uTime',
     value: start,
     type: '1f',
   })
-)
+  .uniform.register({
+    name: 'mvp',
+    value: mvp.values,
+    type: 'Matrix4fv',
+  })
+  .bindBufferByData(
+    new Float32Array([
+      /* eslint-disable */
+    // 1
+    0.0, 1.0, 0.0, // position
+    1.0, 0.0, 0.0, 1.0, // color
+    1.0, 0.0, 0.0, // position
+    0.0, 1.0, 0.0, 1.0, // color
+    -1.0, 0.0, 0.0, // position
+    0.0, 0.0, 1.0, 1.0, // color
 
+    // 2
+    0.0, 2.0, 0.0, // position
+    1.0, 0.0, 1.0, 1.0, // color
+    1.0, 1.0, 0.0, // position
+    0.0, 1.0, 0.0, 1.0, // color
+    -1.0, 1.0, 0.0, // position
+    0.0, 0.5, 1.0, 1.0, // color
+      /* eslint-enable */
+    ])
+  )
+  .attr.pointerByname({
+    name: 'position',
+    size: 3,
+    stride: (3 + 4) * bytesByType.FLOAT,
+  })
+  .attr.pointerByname({
+    name: 'aColor',
+    size: 4,
+    offset: 3 * 4,
+    stride: (3 + 4) * bytesByType.FLOAT,
+  })
+  .drawArrays({
+    mode: 'TRIANGLES',
+  })
+  .drawArrays({
+    mode: 'TRIANGLES',
+    first: 3,
+  })
+  // .drawArrays({ first: 3 })
+  .flush()
 // .registerUniform({
 //   name: 'uTime',
 //   value: start,
@@ -57,52 +100,16 @@ console.log(
 //   value: mvp.values,
 //   type: 'Matrix4fv',
 // })
-// .bindBufferByData(
-//   new Float32Array([
-//     /* eslint-disable */
-//     // 1
-//     0.0, 1.0, 0.0, // position
-//     1.0, 0.0, 0.0, 1.0, // color
-//     1.0, 0.0, 0.0, // position
-//     0.0, 1.0, 0.0, 1.0, // color
-//     -1.0, 0.0, 0.0, // position
-//     0.0, 0.0, 1.0, 1.0, // color
-
-//     // 2
-//     0.0, 2.0, 0.0, // position
-//     1.0, 0.0, 1.0, 1.0, // color
-//     1.0, 1.0, 0.0, // position
-//     0.0, 1.0, 0.0, 1.0, // color
-//     -1.0, 1.0, 0.0, // position
-//     0.0, 0.5, 1.0, 1.0, // color
-//     /* eslint-enable */
-//   ])
-// )
 // .vertexAttribPointerByName({
 //   name: 'position',
 //   size: 3,
 //   stride: (3 + 4) * bytesByType.FLOAT,
 // })
-// .vertexAttribPointerByName({
-//   name: 'aColor',
-//   size: 4,
-//   offset: 3 * 4,
-//   stride: (3 + 4) * bytesByType.FLOAT,
-// })
-// .drawArrays({
-//   mode: 'TRIANGLES',
-// })
-// .drawArrays({
-//   mode: 'TRIANGLES',
-//   first: 3,
-// })
-// // .drawArrays({ first: 3 })
-// .flush()
 
 function update() {
   base
     .clear()
-    .updateUniform({
+    .uniform.update({
       name: 'uTime',
       value: Date.now() - start,
     })
