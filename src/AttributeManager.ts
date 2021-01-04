@@ -1,18 +1,17 @@
-import { WebGlBase } from './webgl-base'
-
 export class AttributeManager {
-  private readonly base: WebGlBase
   private readonly context: WebGLRenderingContext
   private readonly program: WebGLProgram
 
-  private constructor(base: WebGlBase) {
-    this.base = base
-    this.context = base.context
-    this.program = base.program
+  private constructor(context: WebGLRenderingContext, program: WebGLProgram) {
+    this.context = context
+    this.program = program
   }
 
-  static create(base: WebGlBase): AttributeManager {
-    return new AttributeManager(base)
+  static create(
+    context: WebGLRenderingContext,
+    program: WebGLProgram
+  ): AttributeManager {
+    return new AttributeManager(context, program)
   }
 
   pointerByname({
@@ -29,9 +28,9 @@ export class AttributeManager {
     normalized?: GLboolean
     stride?: GLsizei
     offset?: GLintptr
-  }): WebGlBase {
+  }): this {
     this.context.vertexAttribPointer(
-      this.getLocation({ name }),
+      this.getLocationByName(name),
       size,
       type,
       normalized,
@@ -41,26 +40,32 @@ export class AttributeManager {
 
     this.enableByName(name)
 
-    return this.base
+    return this
   }
 
-  enableByName(name: string): WebGlBase {
-    this.context.enableVertexAttribArray(this.getLocation({ name }))
+  enableByName(name: string): this {
+    this.context.enableVertexAttribArray(this.getLocationByName(name))
 
-    return this.base
+    return this
   }
 
-  private getLocation({
-    name,
-    program = this.program,
-  }: {
-    name: string
-    program?: WebGLProgram
-  }): number {
-    if (program === null) {
-      throw new Error('program is not created')
-    }
-
-    return this.context.getAttribLocation(program, name)
+  getLocationByName(name: string): number {
+    return getAttrLocation({
+      context: this.context,
+      program: this.program,
+      name,
+    })
   }
+}
+
+export function getAttrLocation({
+  context,
+  program,
+  name,
+}: {
+  context: WebGLRenderingContext
+  program: WebGLProgram
+  name: string
+}): number {
+  return context.getAttribLocation(program, name)
 }

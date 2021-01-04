@@ -1,5 +1,7 @@
 import { UniformManager } from './UniformManager'
 import { AttributeManager } from './AttributeManager'
+import { TextureManager } from './TextureManager'
+import { DrawMnager } from './DrawMnager'
 
 type Target =
   | 'ARRAY_BUFFER'
@@ -22,80 +24,14 @@ type Usage =
   | 'DYNAMIC_COPY'
   | 'STREAM_COPY'
 
-type UniformArgs = {
-  name: string
-  value: UniformValue
-  type: UniformType
-}
-
-type UniformValue =
-  | Int8Array
-  | Int16Array
-  | Int32Array
-  | Float32Array
-  | Float64Array
-  | number
-  | number[]
-
-type UniformType =
-  | '1i'
-  | '2i'
-  | '3i'
-  | '4i'
-  | '1f'
-  | '2f'
-  | '3f'
-  | '4f'
-  | '1iv'
-  | '2iv'
-  | '3iv'
-  | '4iv'
-  | '1fv'
-  | '2fv'
-  | '3fv'
-  | '4fv'
-  | 'Matrix2iv'
-  | 'Matrix3iv'
-  | 'Matrix4iv'
-  | 'Matrix2fv'
-  | 'Matrix3fv'
-  | 'Matrix4fv'
-
 type ConstructorArgs = {
   canvas?: HTMLCanvasElement
   clearColor?: [number, number, number, number]
   width?: number
   height?: number
+  vertexShader: string
+  fragmentShader: string
 }
-
-type UniformData = {
-  location: WebGLUniformLocation
-  type: UniformType
-}
-
-type TextureData = {
-  location: WebGLUniformLocation
-  index: number
-}
-
-type DrawMode =
-  | 'POINTS'
-  | 'LINE_STRIP'
-  | 'LINE_LOOP'
-  | 'LINES'
-  | 'TRIANGLE_STRIP'
-  | 'TRIANGLE_FAN'
-  | 'TRIANGLES'
-
-type DataType =
-  | 'BYTE'
-  | 'SHORT'
-  | 'UNSIGNED_BYTE'
-  | 'UNSIGNED_SHORT'
-  | 'FLOAT'
-  | 'HALF_FLOAT'
-
-type DrawType = 'UNSIGNED_BYTE' | 'UNSIGNED_SHORT' | 'UNSIGNED_INT'
 
 export const bytesByType = {
   BYTE: 1,
@@ -109,28 +45,40 @@ export const bytesByType = {
 export class WebGlBase {
   public readonly canvas: HTMLCanvasElement
   public readonly context: WebGLRenderingContext
-  public program: WebGLProgram | null = null
+  public readonly program: WebGLProgram
 
-  public uniform: UniformManager
-  public attr: AttributeManager
+  public readonly uniform: UniformManager
+  public readonly attr: AttributeManager
+  public readonly texture: TextureManager
+  public readonly draw: DrawMnager
 
   private clearColor: [number, number, number, number]
   private vertexShader: WebGLShader | null = null
   private fragmentShader: WebGLShader | null = null
-  private uniformMap: Map<string, UniformData> = new Map<string, UniformData>()
 
-  private textureMap: Map<string, TextureData> = new Map<string, TextureData>()
-  private textureIndexMap: Map<string, number> = new Map<string, number>()
-  private textureIndex = 0
-
-  private drawHistory: any[] = []
-
-  private constructor({ canvas, clearColor, width, height }: ConstructorArgs) {
+  private constructor({
+    canvas,
+    clearColor,
+    width,
+    height,
+    vertexShader,
+    fragmentShader,
+  }: ConstructorArgs) {
     this.canvas = canvas
     this.context = (this.canvas.getContext('webgl') ||
       this.canvas.getContext('experimental-webgl')) as WebGLRenderingContext
 
     this.clearColor = [...clearColor]
+
+    this.program = this.createProgram({
+      vertexShader,
+      fragmentShader,
+    })
+
+    this.uniform = UniformManager.create(this.context, this.program)
+    this.attr = AttributeManager.create(this.context, this.program)
+    this.texture = TextureManager.create(this.context, this.program)
+    this.draw = DrawMnager.create(this.context)
 
     this.context.enable(this.context.CULL_FACE)
     this.context.enable(this.context.DEPTH_TEST)
@@ -145,12 +93,20 @@ export class WebGlBase {
     clearColor = [0, 0, 0, 1],
     width = window.innerWidth,
     height = window.innerHeight,
-  }: ConstructorArgs = {}): WebGlBase {
+    vertexShader,
+    fragmentShader,
+  }: ConstructorArgs): WebGlBase {
+    if (!vertexShader || !fragmentShader) {
+      throw new Error('vertexShader or fragmentShader is required')
+    }
+
     return new WebGlBase({
       canvas,
       clearColor,
       width,
       height,
+      vertexShader,
+      fragmentShader,
     })
   }
 
@@ -174,13 +130,13 @@ export class WebGlBase {
     return this
   }
 
-  createProgram({
+  private createProgram({
     vertexShader,
     fragmentShader,
   }: {
     vertexShader: string
     fragmentShader: string
-  }): WebGlBase {
+  }): WebGLProgram {
     this.vertexShader = this.createVertextShader(vertexShader)
     this.fragmentShader = this.createFragmentShader(fragmentShader)
 
@@ -192,106 +148,20 @@ export class WebGlBase {
       throw new Error('fragment shader is not created')
     }
 
-    this.program = this.context.createProgram()
+    const program: WebGLProgram = this.context.createProgram()
 
-    this.context.attachShader(this.program, this.vertexShader)
-    this.context.attachShader(this.program, this.fragmentShader)
+    this.context.attachShader(program, this.vertexShader)
+    this.context.attachShader(program, this.fragmentShader)
 
-    this.context.linkProgram(this.program)
+    this.context.linkProgram(program)
 
-    if (
-      !this.context.getProgramParameter(this.program, this.context.LINK_STATUS)
-    ) {
+    if (!this.context.getProgramParameter(program, this.context.LINK_STATUS)) {
       throw new Error('can not link program')
     }
 
-    this.context.useProgram(this.program)
+    this.context.useProgram(program)
 
-    this.uniform = UniformManager.create(this)
-    this.attr = AttributeManager.create(this)
-
-    return this
-  }
-
-  drawArrays({
-    mode,
-    first = 0,
-    count = 3,
-    addHistory = true,
-  }: {
-    mode: DrawMode
-    first?: GLint
-    count?: GLsizei
-    addHistory?: boolean
-  }): WebGlBase {
-    this.context.drawArrays(this.context[mode], first, count)
-
-    if (addHistory) {
-      this.drawHistory.push({
-        method: 'Arrays',
-        mode,
-        first,
-        count,
-      })
-    }
-
-    return this
-  }
-
-  drawElements({
-    mode,
-    count,
-    type,
-    offset = 0,
-    addHistory = true,
-  }: {
-    mode: DrawMode
-    count: GLsizei
-    type: DrawType
-    offset: GLintptr
-    addHistory?: boolean
-  }): WebGlBase {
-    this.context.drawElements(
-      this.context[mode],
-      count,
-      this.context[type],
-      offset
-    )
-
-    if (addHistory) {
-      this.drawHistory.push({
-        method: 'Elements',
-        mode,
-        count,
-        type,
-        offset,
-      })
-    }
-
-    return this
-  }
-
-  drawUpdate(): this {
-    this.drawHistory.forEach((item) => {
-      if (item.method === 'Elements') {
-        this.drawElements({
-          mode: item.mode,
-          count: item.count,
-          type: item.type,
-          offset: item.offset,
-          addHistory: false,
-        })
-      } else if (item.method === 'Arrays') {
-        this.drawArrays({
-          mode: item.mode,
-          first: item.first,
-          count: item.count,
-          addHistory: false,
-        })
-      }
-    })
-
-    return this
+    return program
   }
 
   flush(): WebGlBase {
@@ -326,13 +196,12 @@ export class WebGlBase {
   }
 
   bindBufferByData(data: BufferSource): WebGlBase {
-    const vbo = this.createVbo(data)
-    this.context.bindBuffer(this.context.ARRAY_BUFFER, vbo)
+    this.context.bindBuffer(this.context.ARRAY_BUFFER, this.createVbo(data))
 
     return this
   }
 
-  private createVbo(data: BufferSource): WebGLBuffer {
+  createVbo(data: BufferSource): WebGLBuffer {
     const vbo = this.context.createBuffer()
     this.context.bindBuffer(this.context.ARRAY_BUFFER, vbo)
     this.context.bufferData(
@@ -343,9 +212,5 @@ export class WebGlBase {
     this.context.bindBuffer(this.context.ARRAY_BUFFER, null)
 
     return vbo
-  }
-
-  private getTextureIndex(name: string): number {
-    return this.textureIndexMap.get(name) || this.textureIndex++
   }
 }

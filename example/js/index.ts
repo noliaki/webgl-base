@@ -34,24 +34,22 @@ const base = WebGlBase.createBase({
   canvas: document.getElementById('c') as HTMLCanvasElement,
   // width: 300,
   // height: 300,
+  vertexShader,
+  fragmentShader,
 })
-  .createProgram({
-    vertexShader,
-    fragmentShader,
-  })
-  .uniform.register({
-    name: 'uTime',
-    value: start,
-    type: '1f',
-  })
-  .uniform.register({
-    name: 'mvp',
-    value: mvp.values,
-    type: 'Matrix4fv',
-  })
-  .bindBufferByData(
-    new Float32Array([
-      /* eslint-disable */
+base.uniform.register({
+  name: 'uTime',
+  value: start,
+  type: '1f',
+})
+base.uniform.register({
+  name: 'mvp',
+  value: mvp.values,
+  type: 'Matrix4fv',
+})
+base.bindBufferByData(
+  new Float32Array([
+    /* eslint-disable */
     // 1
     0.0, 1.0, 0.0, // position
     1.0, 0.0, 0.0, 1.0, // color
@@ -67,29 +65,29 @@ const base = WebGlBase.createBase({
     0.0, 1.0, 0.0, 1.0, // color
     -1.0, 1.0, 0.0, // position
     0.0, 0.5, 1.0, 1.0, // color
-      /* eslint-enable */
-    ])
-  )
-  .attr.pointerByname({
-    name: 'position',
-    size: 3,
-    stride: (3 + 4) * bytesByType.FLOAT,
-  })
-  .attr.pointerByname({
-    name: 'aColor',
-    size: 4,
-    offset: 3 * 4,
-    stride: (3 + 4) * bytesByType.FLOAT,
-  })
-  .drawArrays({
-    mode: 'TRIANGLES',
-  })
-  .drawArrays({
-    mode: 'TRIANGLES',
-    first: 3,
-  })
-  // .drawArrays({ first: 3 })
-  .flush()
+    /* eslint-enable */
+  ])
+)
+base.attr.pointerByname({
+  name: 'position',
+  size: 3,
+  stride: (3 + 4) * bytesByType.FLOAT,
+})
+base.attr.pointerByname({
+  name: 'aColor',
+  size: 4,
+  offset: 3 * 4,
+  stride: (3 + 4) * bytesByType.FLOAT,
+})
+base.draw.arrays({
+  mode: 'TRIANGLES',
+})
+base.draw.arrays({
+  mode: 'TRIANGLES',
+  first: 3,
+})
+// .drawArrays({ first: 3 })
+base.flush()
 // .registerUniform({
 //   name: 'uTime',
 //   value: start,
@@ -107,14 +105,13 @@ const base = WebGlBase.createBase({
 // })
 
 function update() {
-  base
-    .clear()
-    .uniform.update({
-      name: 'uTime',
-      value: Date.now() - start,
-    })
-    .drawUpdate()
-    .flush()
+  base.clear()
+  base.uniform.update({
+    name: 'uTime',
+    value: Date.now() - start,
+  })
+  base.draw.update()
+  base.flush()
 
   window.requestAnimationFrame(() => {
     update()
