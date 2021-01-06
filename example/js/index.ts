@@ -52,32 +52,44 @@ base.bindBufferByData(
     /* eslint-disable */
     // 1
     0.0, 1.0, 0.0, // position
+    0.0, 0.0, 1.0, // normal
     1.0, 0.0, 0.0, 1.0, // color
     1.0, 0.0, 0.0, // position
+    0.0, 0.0, 1.0, // normal
     0.0, 1.0, 0.0, 1.0, // color
     -1.0, 0.0, 0.0, // position
+    0.0, 0.0, 1.0, // normal
     0.0, 0.0, 1.0, 1.0, // color
 
     // 2
     0.0, 2.0, 0.0, // position
+    0.0, 0.0, 1.0, // normal
     1.0, 0.0, 1.0, 1.0, // color
     1.0, 1.0, 0.0, // position
+    0.0, 0.0, 1.0, // normal
     0.0, 1.0, 0.0, 1.0, // color
     -1.0, 1.0, 0.0, // position
+    0.0, 0.0, 1.0, // normal
     0.0, 0.5, 1.0, 1.0, // color
     /* eslint-enable */
   ])
 )
 base.attr.pointerByname({
-  name: 'position',
+  name: 'aPosition',
   size: 3,
-  stride: (3 + 4) * bytesByType.FLOAT,
+  stride: (3 + 3 + 4) * bytesByType.FLOAT,
+})
+base.attr.pointerByname({
+  name: 'aNormal',
+  size: 3,
+  offset: 3 * bytesByType.FLOAT,
+  stride: (3 + 3 + 4) * bytesByType.FLOAT,
 })
 base.attr.pointerByname({
   name: 'aColor',
   size: 4,
-  offset: 3 * 4,
-  stride: (3 + 4) * bytesByType.FLOAT,
+  offset: (3 + 3) * bytesByType.FLOAT,
+  stride: (3 + 3 + 4) * bytesByType.FLOAT,
 })
 base.draw.arrays({
   mode: 'TRIANGLES',
@@ -118,4 +130,4 @@ function update() {
   })
 }
 
-// update()
+update()
