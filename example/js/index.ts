@@ -28,6 +28,9 @@ const transform = identity
   .mulByMatrix4(scaling)
 
 const mvp = perspective.mulByMatrix4(view) // .mulByMatrix4(transform)
+const lightDirection = new Vector3(0.5, 0.7, 1)
+
+console.log(lightDirection.values)
 
 const base = WebGlBase.createBase({
   clearColor: [0, 0, 0, 1],
@@ -43,10 +46,20 @@ base.uniform.register({
   type: '1f',
 })
 base.uniform.register({
-  name: 'mvp',
+  name: 'uMvp',
   value: mvp.values,
   type: 'Matrix4fv',
 })
+base.uniform.register({
+  name: 'uLightDirection',
+  value: lightDirection.normalize().values,
+  type: '3fv',
+})
+// base.uniform.register({
+//   name: 'uInvMvp',
+//   value: mvp.values,
+//   type: 'Matrix4fv',
+// })
 base.bindBufferByData(
   new Float32Array([
     /* eslint-disable */
@@ -56,10 +69,10 @@ base.bindBufferByData(
     1.0, 0.0, 0.0, 1.0, // color
     1.0, 0.0, 0.0, // position
     0.0, 0.0, 1.0, // normal
-    0.0, 1.0, 0.0, 1.0, // color
+    1.0, 0.0, 0.0, 1.0, // color
     -1.0, 0.0, 0.0, // position
     0.0, 0.0, 1.0, // normal
-    0.0, 0.0, 1.0, 1.0, // color
+    1.0, 0.0, 0.0, 1.0, // color
 
     // 2
     0.0, 2.0, 0.0, // position
@@ -67,10 +80,10 @@ base.bindBufferByData(
     1.0, 0.0, 1.0, 1.0, // color
     1.0, 1.0, 0.0, // position
     0.0, 0.0, 1.0, // normal
-    0.0, 1.0, 0.0, 1.0, // color
+    1.0, 0.0, 1.0, 1.0, // color
     -1.0, 1.0, 0.0, // position
     0.0, 0.0, 1.0, // normal
-    0.0, 0.5, 1.0, 1.0, // color
+    1.0, 0.0, 1.0, 1.0, // color
     /* eslint-enable */
   ])
 )

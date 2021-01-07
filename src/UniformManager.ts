@@ -62,6 +62,8 @@ export class UniformManager {
   register({ name, value, type }: UniformArgs): this {
     const location: WebGLUniformLocation = this.getLocationByName(name)
 
+    console.log(name, location)
+
     if (!this.uniformMap.has(name)) {
       this.uniformMap.set(name, {
         location,
@@ -97,7 +99,7 @@ export class UniformManager {
   }: UniformData & { value: UniformValue }): this {
     if (type.startsWith('Matrix')) {
       this.context[`uniform${type}`](location, false, value)
-    } else if (type.endsWith('v') && typeof value !== 'number') {
+    } else if (!type.endsWith('v') && typeof value !== 'number') {
       this.context[`uniform${type}`](location, ...value)
     } else {
       this.context[`uniform${type}`](location, value)

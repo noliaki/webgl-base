@@ -80,7 +80,7 @@ export class WebGlBase {
     this.texture = TextureManager.create(this.context, this.program)
     this.draw = DrawMnager.create(this.context)
 
-    this.context.enable(this.context.CULL_FACE)
+    // this.context.enable(this.context.CULL_FACE)
     this.context.enable(this.context.DEPTH_TEST)
     this.context.depthFunc(this.context.LEQUAL)
 
