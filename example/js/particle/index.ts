@@ -1,4 +1,4 @@
-import { WebGlBase, bytesByType } from '../../src/webgl-base'
+import { WebGlBase, bytesByType } from '../../../src/webgl-base'
 import vertexShader from './vertex-shader.glsl'
 import fragmentShader from './fragment-shader.glsl'
 import { Vector3, Matrix4 } from 'matrixgl'
