@@ -62,8 +62,6 @@ export class UniformManager {
   register({ name, value, type }: UniformArgs): this {
     const location: WebGLUniformLocation = this.getLocationByName(name)
 
-    console.log(name, location)
-
     if (!this.uniformMap.has(name)) {
       this.uniformMap.set(name, {
         location,

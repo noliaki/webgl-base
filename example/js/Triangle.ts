@@ -11,8 +11,8 @@ export function createTriangle({
   const data = []
 
   for (let i = 0; i < 3; i++) {
-    const x = position[0] + size * Math.cos((first + i * 60) * radius)
-    const y = position[1] + size * Math.sin((first + i * 60) * radius)
+    const x = position[0] + size * Math.cos((first + i * 120) * radius)
+    const y = position[1] + size * Math.sin((first + i * 120) * radius)
     const z = position[2]
 
     // position
@@ -30,6 +30,16 @@ export function createTriangle({
     data.push(0.3)
     data.push(1)
     data.push(1)
+
+    // stagger
+    data.push(Math.random())
+    data.push(Math.random())
+    data.push(Math.random())
+
+    // center
+    data.push(position[0])
+    data.push(position[1])
+    data.push(position[2])
   }
 
   return data
