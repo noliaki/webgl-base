@@ -30,19 +30,7 @@ export class TextureManager {
       return this.updateTexture({ name, texture })
     }
 
-    const createdTex = this.context.createTexture()
     this.context.activeTexture(this.context[`TEXTURE${this.getIndex(name)}`])
-    this.context.bindTexture(this.context.TEXTURE_2D, createdTex)
-    this.context.texImage2D(
-      this.context.TEXTURE_2D,
-      0,
-      this.context.RGBA,
-      this.context.RGBA,
-      this.context.UNSIGNED_BYTE,
-      texture
-    )
-    this.context.generateMipmap(this.context.TEXTURE_2D)
-    this.context.bindTexture(this.context.TEXTURE_2D, null)
 
     return this.updateTexture({ name, texture })
   }
@@ -56,7 +44,18 @@ export class TextureManager {
   }): this {
     const { location, index } = this.getTextureByName(name)
 
-    this.context.bindTexture(this.context.TEXTURE_2D, texture)
+    const createdTex: WebGLTexture = this.context.createTexture()
+    this.context.bindTexture(this.context.TEXTURE_2D, createdTex)
+    this.context.texImage2D(
+      this.context.TEXTURE_2D,
+      0,
+      this.context.RGBA,
+      this.context.RGBA,
+      this.context.UNSIGNED_BYTE,
+      texture
+    )
+    this.context.generateMipmap(this.context.TEXTURE_2D)
+
     this.context.texParameteri(
       this.context.TEXTURE_2D,
       this.context.TEXTURE_MIN_FILTER,
@@ -103,6 +102,12 @@ export class TextureManager {
   }
 
   private getIndex(name: string): number {
-    return this.textureIndexMap.get(name) || this.textureIndex++
+    if (this.textureIndexMap.has(name)) {
+      return this.textureIndexMap.get(name)
+    }
+
+    this.textureIndexMap.set(name, this.textureIndex)
+
+    return this.textureIndex++
   }
 }

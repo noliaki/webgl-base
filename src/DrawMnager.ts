@@ -30,18 +30,18 @@ export class DrawMnager {
   }
 
   elements({
-    mode,
-    count,
-    type,
+    mode = 'TRIANGLES',
+    count = 3,
+    type = 'UNSIGNED_SHORT',
     offset = 0,
     addHistory = true,
   }: {
-    mode: DrawMode
-    count: GLsizei
-    type: DrawType
-    offset: GLintptr
+    mode?: DrawMode
+    count?: GLsizei
+    type?: DrawType
+    offset?: GLintptr
     addHistory?: boolean
-  }): this {
+  } = {}): this {
     this.context.drawElements(
       this.context[mode],
       count,
@@ -63,16 +63,16 @@ export class DrawMnager {
   }
 
   arrays({
-    mode,
+    mode = 'TRIANGLES',
     first = 0,
     count = 3,
     addHistory = true,
   }: {
-    mode: DrawMode
+    mode?: DrawMode
     first?: GLint
     count?: GLsizei
     addHistory?: boolean
-  }): this {
+  } = {}): this {
     this.context.drawArrays(this.context[mode], first, count)
 
     if (addHistory) {

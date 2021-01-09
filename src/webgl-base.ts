@@ -195,21 +195,38 @@ export class WebGlBase {
     return this.createShader(src, this.context.FRAGMENT_SHADER)
   }
 
-  bindBufferByData(data: BufferSource): WebGlBase {
-    this.context.bindBuffer(this.context.ARRAY_BUFFER, this.createVbo(data))
+  bindBufferByData({
+    data,
+    target = 'ARRAY_BUFFER',
+    usage = 'STATIC_DRAW',
+  }: {
+    data: BufferSource | WebGLBuffer
+    target?: Target
+    usage?: Usage
+  }): WebGlBase {
+    this.context.bindBuffer(
+      this.context[target],
+      data instanceof window.WebGLBuffer
+        ? data
+        : this.createVbo({ data, target, usage })
+    )
 
     return this
   }
 
-  createVbo(data: BufferSource): WebGLBuffer {
-    const vbo = this.context.createBuffer()
-    this.context.bindBuffer(this.context.ARRAY_BUFFER, vbo)
-    this.context.bufferData(
-      this.context.ARRAY_BUFFER,
-      data,
-      this.context.STATIC_DRAW
-    )
-    this.context.bindBuffer(this.context.ARRAY_BUFFER, null)
+  createVbo({
+    data,
+    target,
+    usage,
+  }: {
+    data: BufferSource
+    target: Target
+    usage: Usage
+  }): WebGLBuffer {
+    const vbo: WebGLBuffer = this.context.createBuffer()
+    this.context.bindBuffer(this.context[target], vbo)
+    this.context.bufferData(this.context[target], data, this.context[usage])
+    this.context.bindBuffer(this.context[target], null)
 
     return vbo
   }
