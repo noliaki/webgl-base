@@ -82,6 +82,10 @@ export class TextureManager {
     return this
   }
 
+  get maxTextureSize(): number {
+    return this.context.MAX_TEXTURE_SIZE
+  }
+
   private getTextureByName(name: string): TextureData {
     if (this.textureMap.has(name)) {
       return this.textureMap.get(name)

@@ -1,5 +1,6 @@
 export function loadImage(
-  src: string
+  src: string,
+  maxTextureSize?: number = Math.pow(2, 10)
 ): Promise<{
   size: number
   textureSource: HTMLImageElement | HTMLCanvasElement
@@ -33,7 +34,10 @@ export function loadImage(
           const width = img.naturalWidth
           const height = img.naturalHeight
 
-          const textureSize = getTextureSize(width, height)
+          const textureSize = Math.min(
+            getTextureSize(width, height),
+            getTextureSize(maxTextureSize, maxTextureSize)
+          )
 
           img.width = textureSize
           img.height = textureSize

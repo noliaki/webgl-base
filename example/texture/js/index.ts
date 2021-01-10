@@ -165,9 +165,20 @@ base.flush()
 // })
 
 async function init(): Promise<void> {
-  const texture1 = await loadImage('/texture/img/IMG_0049.JPG')
-  const texture2 = await loadImage('/texture/img/cat.jpg')
-  const filter = await loadImage('/texture/img/cloud.png')
+  console.log(base.texture.maxTextureSize)
+
+  const texture1 = await loadImage(
+    '/texture/img/img_0049.jpg',
+    base.texture.maxTextureSize
+  )
+  const texture2 = await loadImage(
+    '/texture/img/cat.jpg',
+    base.texture.maxTextureSize
+  )
+  const filter = await loadImage(
+    '/texture/img/cloud.png',
+    base.texture.maxTextureSize
+  )
 
   console.log(texture1, texture2)
 
