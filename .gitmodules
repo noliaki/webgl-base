@@ -1,0 +1,3 @@
+[submodule "example/texture/js/fragment-shader/glsl-easing"]
+	path = example/texture/js/fragment-shader/glsl-easing
+	url = https://github.com/glslify/glsl-easings.git

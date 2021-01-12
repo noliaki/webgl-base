@@ -1,3 +1,5 @@
+precision mediump float;
+
 attribute vec3 aPosition;
 uniform vec2 uResolution;
 // attribute vec2 textureCoord;

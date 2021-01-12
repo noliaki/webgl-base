@@ -1,9 +1,11 @@
-import { WebGlBase, bytesByType } from '../../../src/webgl-base'
+import { WebGlBase } from '../../../src/webgl-base'
 import vertexShader from './vertex-shader.glsl'
-import fragmentShader from './fragment-shader.glsl'
+import fragmentShader from './fragment-shader'
 import { Vector3, Matrix4 } from 'matrixgl'
 import { createSquare } from './Square'
 import { loadImage } from './helper'
+
+console.log(fragmentShader)
 
 const start: number = Date.now()
 
