@@ -1,12 +1,12 @@
 import { WebGlBase, bytesByType } from '../../../src/webgl-base'
-import vertexShader from './vertex-shader.glsl'
+import vertexShader from './vertex-shader/index'
 import fragmentShader from './fragment-shader.glsl'
 import { Vector3, Matrix4 } from 'matrixgl'
 import { createTriangle } from './Triangle'
 
 const start: number = Date.now()
 
-const camera = new Vector3(0, 0, -5)
+const camera = new Vector3(0, 0, -1)
 const lookAt = new Vector3(0, 0, 0)
 const cameraUpDirection = new Vector3(0, 1, 0)
 
@@ -31,7 +31,7 @@ const transform = identity
 const mvp = perspective.mulByMatrix4(view) // .mulByMatrix4(transform)
 const lightDirection = new Vector3(0.5, 0.7, 1)
 
-const particleNum = 10000
+const particleNum = 1000
 const particles = createTriangleParticleData()
 
 const base = WebGlBase.createBase({
@@ -62,9 +62,11 @@ base.uniform.register({
 //   value: mvp.values,
 //   type: 'Matrix4fv',
 // })
-base.bindBufferByData(particles)
+base.bindBufferByData({
+  data: particles,
+})
 
-const stride = (3 + 3 + 4 + 3 + 3) * bytesByType.FLOAT
+const stride = (3 + 3 + 3 + 3) * bytesByType.FLOAT
 
 base.attr.pointerByname({
   name: 'aPosition',
@@ -77,22 +79,22 @@ base.attr.pointerByname({
   offset: 3 * bytesByType.FLOAT,
   stride,
 })
-base.attr.pointerByname({
-  name: 'aColor',
-  size: 4,
-  offset: (3 + 3) * bytesByType.FLOAT,
-  stride,
-})
+// base.attr.pointerByname({
+//   name: 'aColor',
+//   size: 4,
+//   offset: (3 + 3) * bytesByType.FLOAT,
+//   stride,
+// })
 base.attr.pointerByname({
   name: 'aStagger',
   size: 3,
-  offset: (3 + 3 + 4) * bytesByType.FLOAT,
+  offset: (3 + 3) * bytesByType.FLOAT,
   stride,
 })
 base.attr.pointerByname({
   name: 'aCenter',
   size: 3,
-  offset: (3 + 3 + 4 + 3) * bytesByType.FLOAT,
+  offset: (3 + 3 + 3) * bytesByType.FLOAT,
   stride,
 })
 firstDraw()
@@ -140,12 +142,8 @@ function createTriangleParticleData(vol = particleNum): Float32Array {
 
   for (let i = 0; i < vol; i++) {
     const triangleData = createTriangle({
-      position: [
-        Math.random() * -60 + 30,
-        Math.random() * -60 + 30,
-        Math.random() * 300,
-      ],
-      size: Math.random() * 2 + 1,
+      position: [Math.random() * -2 + 1, Math.random() * -2 + 1, 0],
+      size: Math.random() * 0.02 + 0.01,
     })
 
     data = data.concat(triangleData)

@@ -26,10 +26,10 @@ export function createTriangle({
     data.push(1)
 
     // color
-    data.push(0)
-    data.push(0.3)
-    data.push(1)
-    data.push(1)
+    // data.push(0)
+    // data.push(0.3)
+    // data.push(1)
+    // data.push(1)
 
     // stagger
     data.push(Math.random())

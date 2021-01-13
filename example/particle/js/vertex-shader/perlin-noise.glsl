@@ -1,13 +1,3 @@
-attribute vec3 aPosition;
-attribute vec3 aNormal;
-attribute vec4 aColor;
-attribute vec3 aStagger;
-attribute vec3 aCenter;
-uniform mat4 uMvp;
-uniform float uTime;
-varying vec4 vColor;
-varying vec3 vNormal;
-
 //
 // Description : Array and textureless GLSL 2D/3D/4D simplex
 //               noise functions.
@@ -111,58 +101,3 @@ float snoise(vec3 v)
   return 105.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),
                                 dot(p2,x2), dot(p3,x3) ) );
   }
-
-mat4 rotationX( in float angle ) {
-  return mat4(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, cos(angle), -sin(angle), 0.0,
-    0.0, sin(angle), cos(angle), 0.0,
-    0.0, 0.0, 0.0, 1.0
-  );
-}
-
-mat4 rotationY( in float angle ) {
-  return mat4(
-    cos(angle), 0.0, sin(angle), 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    -sin(angle), 0.0, cos(angle), 0.0,
-    0.0, 0.0, 0.0, 1.0
-  );
-}
-
-mat4 rotationZ( in float angle ) {
-  return mat4(
-    cos(angle), -sin(angle), 0.0, 0.0,
-    sin(angle), cos(angle), 0.0, 0.0,
-    0.0, 0.0, 1.0, 0.0,
-    0.0, 0.0, 0.0, 1.0
-  );
-}
-
-void main(void){
-  vColor = vec4(
-    aColor.rgb * (snoise(vec3(aStagger.xz, uTime / (aStagger.y * 1000.0 + 1000.0))) + 1.0) / 2.0,
-    1.0
-  );
-
-  vec3 center = aPosition - aCenter;
-
-  mat4 rotation =
-    rotationX(uTime / (2000.0 * aStagger.x + 1000.0)) *
-    rotationY(uTime / (2000.0 * aStagger.y + 1000.0)) *
-    rotationZ(uTime / (2000.0 * aStagger.z + 1000.0));
-
-  vec4 np = vec4(aNormal - aCenter, 1.0);
-  vNormal = (np * rotation).xyz + aCenter;
-
-  // vec4 p = vec4(
-  //   aPosition.x + snoise(vec3(aStagger.xy, uTime * (aStagger.z) / 3000.0)),
-  //   aPosition.y + snoise(vec3(aStagger.xy, uTime * (aStagger.z) / 3000.0)),
-  //   aPosition.z + snoise(vec3(aStagger.xy, uTime * (aStagger.z) / 3000.0)),
-  //   1.0
-  // );
-  vec4 p = vec4(center.xyz, 1.0) * rotation;
-
-  gl_Position = uMvp * vec4(p.xyz + aCenter.xyz, 1.0);
-  // gl_PointSize = 20.0;
-}
