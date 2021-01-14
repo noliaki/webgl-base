@@ -49,8 +49,6 @@ const textureCoord: Float32Array = new Float32Array([
   1.0,
 ])
 
-console.log(square)
-
 const base = WebGlBase.createBase({
   clearColor: [0, 0, 0, 1],
   canvas: document.getElementById('c') as HTMLCanvasElement,
@@ -58,38 +56,6 @@ const base = WebGlBase.createBase({
   // height: 300,
   vertexShader,
   fragmentShader,
-})
-
-base.uniform.register({
-  name: 'uResolution',
-  value: [window.innerWidth, window.innerHeight],
-  type: '2fv',
-})
-
-base.uniform.register({
-  name: 'uTime',
-  value: start,
-  type: '1f',
-})
-
-base.bindBufferByData({
-  data: square.position,
-})
-
-base.attr.pointerByname({
-  name: 'aPosition',
-  size: 3,
-})
-
-base.bindBufferByData({
-  data: square.index,
-  target: 'ELEMENT_ARRAY_BUFFER',
-  usage: 'STATIC_DRAW',
-})
-
-base.draw.elements({
-  mode: 'TRIANGLES',
-  count: square.index.length,
 })
 
 // base.uniform.register({
@@ -149,7 +115,7 @@ base.draw.elements({
 //   first: 3,
 // })
 // .drawArrays({ first: 3 })
-base.flush()
+// base.flush()
 // .registerUniform({
 //   name: 'uTime',
 //   value: start,
@@ -169,11 +135,10 @@ base.flush()
 videoEl.addEventListener(
   'loadedmetadata',
   async (_event: Event): Promise<void> => {
-    videoEl.width = Math.pow(2, 9)
-    videoEl.height = Math.pow(2, 9)
+    await videoEl.play().catch(console.error)
 
-    await videoEl.play()
-
+    // videoEl.width = Math.pow(2, 9)
+    // videoEl.height = Math.pow(2, 9)
     // const texture1 = await loadImage(
     //   '/texture/img/img_0049.jpg',
     //   base.texture.maxTextureSize
@@ -186,6 +151,33 @@ videoEl.addEventListener(
       '/texture/img/cloud.png',
       base.texture.maxTextureSize
     )
+
+    base.uniform.register({
+      name: 'uResolution',
+      value: [window.innerWidth, window.innerHeight],
+      type: '2fv',
+    })
+
+    base.uniform.register({
+      name: 'uTime',
+      value: start,
+      type: '1f',
+    })
+
+    base.bindBufferByData({
+      data: square.position,
+    })
+
+    base.attr.pointerByname({
+      name: 'aPosition',
+      size: 3,
+    })
+
+    base.bindBufferByData({
+      data: square.index,
+      target: 'ELEMENT_ARRAY_BUFFER',
+      usage: 'STATIC_DRAW',
+    })
 
     base.texture.register({
       name: 'tex1',
@@ -217,59 +209,67 @@ videoEl.addEventListener(
       value: [filter.naturalWidth, filter.naturalHeight],
     })
 
+    base.draw.elements({
+      mode: 'TRIANGLES',
+      count: square.index.length,
+    })
+
     update()
+  },
+  {
+    once: true,
   }
 )
 
-async function init(): Promise<void> {
-  await startStream()
+// async function init(): Promise<void> {
+//   await startStream()
 
-  videoEl.width = Math.pow(2, 9)
-  videoEl.height = Math.pow(2, 9)
+//   videoEl.width = Math.pow(2, 9)
+//   videoEl.height = Math.pow(2, 9)
 
-  // const texture1 = await loadImage(
-  //   '/texture/img/img_0049.jpg',
-  //   base.texture.maxTextureSize
-  // )
-  const texture2 = await loadImage(
-    '/texture/img/cat.jpg',
-    base.texture.maxTextureSize
-  )
-  const filter = await loadImage(
-    '/texture/img/cloud.png',
-    base.texture.maxTextureSize
-  )
+//   // const texture1 = await loadImage(
+//   //   '/texture/img/img_0049.jpg',
+//   //   base.texture.maxTextureSize
+//   // )
+//   const texture2 = await loadImage(
+//     '/texture/img/cat.jpg',
+//     base.texture.maxTextureSize
+//   )
+//   const filter = await loadImage(
+//     '/texture/img/cloud.png',
+//     base.texture.maxTextureSize
+//   )
 
-  base.texture.register({
-    name: 'tex1',
-    texture: videoEl,
-  })
-  base.texture.register({
-    name: 'tex2',
-    texture: texture2.textureSource,
-  })
-  base.texture.register({
-    name: 'texFilter',
-    texture: filter.textureSource,
-  })
+//   base.texture.register({
+//     name: 'tex1',
+//     texture: videoEl,
+//   })
+//   base.texture.register({
+//     name: 'tex2',
+//     texture: texture2.textureSource,
+//   })
+//   base.texture.register({
+//     name: 'texFilter',
+//     texture: filter.textureSource,
+//   })
 
-  base.uniform.register({
-    name: 'tex1Resolution',
-    type: '2fv',
-    value: [640, 480],
-  })
-  base.uniform.register({
-    name: 'tex2Resolution',
-    type: '2fv',
-    value: [texture2.naturalWidth, texture2.naturalHeight],
-  })
+//   base.uniform.register({
+//     name: 'tex1Resolution',
+//     type: '2fv',
+//     value: [640, 480],
+//   })
+//   base.uniform.register({
+//     name: 'tex2Resolution',
+//     type: '2fv',
+//     value: [texture2.naturalWidth, texture2.naturalHeight],
+//   })
 
-  base.uniform.register({
-    name: 'texFilterResolution',
-    type: '2fv',
-    value: [filter.naturalWidth, filter.naturalHeight],
-  })
-}
+//   base.uniform.register({
+//     name: 'texFilterResolution',
+//     type: '2fv',
+//     value: [filter.naturalWidth, filter.naturalHeight],
+//   })
+// }
 
 function update() {
   base.clear()

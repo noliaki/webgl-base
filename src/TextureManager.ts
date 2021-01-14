@@ -30,21 +30,13 @@ export class TextureManager {
       return this.updateTexture({ name, texture })
     }
 
-    this.context.activeTexture(this.context[`TEXTURE${this.getIndex(name)}`])
-
-    return this.updateTexture({ name, texture })
-  }
-
-  updateTexture({
-    name,
-    texture,
-  }: {
-    name: string
-    texture: TexImageSource
-  }): this {
-    const { location, index } = this.getTextureByName(name)
-
     const createdTex: WebGLTexture = this.context.createTexture()
+
+    console.log(name, this.getIndex(name))
+
+    this.context.activeTexture(this.context[`TEXTURE${this.getIndex(name)}`])
+    // const { location, index } = this.getTextureByName(name)
+
     this.context.bindTexture(this.context.TEXTURE_2D, createdTex)
     this.context.texImage2D(
       this.context.TEXTURE_2D,
@@ -98,7 +90,81 @@ export class TextureManager {
     //   this.context.REPEAT
     // )
 
+    // console.log(location, index, texture)
+
+    // this.context.uniform1i(location, index)
+    // this.context.bindTexture(this.context.TEXTURE_2D, null)
+    return this.updateTexture({ name, texture })
+  }
+
+  updateTexture({
+    name,
+    texture,
+  }: {
+    name: string
+    texture: TexImageSource
+  }): this {
+    const { location, index } = this.getTextureByName(name)
+    this.context.activeTexture(this.context[`TEXTURE${index}`])
+
+    // console.log(location, index)
+    // const createdTex: WebGLTexture = this.context.createTexture()
+    // this.context.bindTexture(this.context.TEXTURE_2D, createdTex)
+
+    this.context.texImage2D(
+      this.context.TEXTURE_2D,
+      0,
+      this.context.RGBA,
+      this.context.RGBA,
+      this.context.UNSIGNED_BYTE,
+      texture
+    )
+    // this.context.generateMipmap(this.context.TEXTURE_2D)
+
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_MAG_FILTER,
+    //   this.context.LINEAR
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_MIN_FILTER,
+    //   this.context.LINEAR
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_WRAP_S,
+    //   this.context.CLAMP_TO_EDGE
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_WRAP_T,
+    //   this.context.CLAMP_TO_EDGE
+    // )
+
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_MIN_FILTER,
+    //   this.context.NEAREST
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_MAG_FILTER,
+    //   this.context.NEAREST
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_WRAP_S,
+    //   this.context.REPEAT
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_WRAP_T,
+    //   this.context.REPEAT
+    // )
+
     this.context.uniform1i(location, index)
+    // this.context.bindTexture(this.context.TEXTURE_2D, null)
 
     return this
   }
