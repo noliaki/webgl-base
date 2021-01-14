@@ -54,28 +54,49 @@ export class TextureManager {
       this.context.UNSIGNED_BYTE,
       texture
     )
-    this.context.generateMipmap(this.context.TEXTURE_2D)
+    // this.context.generateMipmap(this.context.TEXTURE_2D)
 
     this.context.texParameteri(
       this.context.TEXTURE_2D,
-      this.context.TEXTURE_MIN_FILTER,
-      this.context.NEAREST
+      this.context.TEXTURE_MAG_FILTER,
+      this.context.LINEAR
     )
     this.context.texParameteri(
       this.context.TEXTURE_2D,
-      this.context.TEXTURE_MAG_FILTER,
-      this.context.NEAREST
+      this.context.TEXTURE_MIN_FILTER,
+      this.context.LINEAR
     )
     this.context.texParameteri(
       this.context.TEXTURE_2D,
       this.context.TEXTURE_WRAP_S,
-      this.context.REPEAT
+      this.context.CLAMP_TO_EDGE
     )
     this.context.texParameteri(
       this.context.TEXTURE_2D,
       this.context.TEXTURE_WRAP_T,
-      this.context.REPEAT
+      this.context.CLAMP_TO_EDGE
     )
+
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_MIN_FILTER,
+    //   this.context.NEAREST
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_MAG_FILTER,
+    //   this.context.NEAREST
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_WRAP_S,
+    //   this.context.REPEAT
+    // )
+    // this.context.texParameteri(
+    //   this.context.TEXTURE_2D,
+    //   this.context.TEXTURE_WRAP_T,
+    //   this.context.REPEAT
+    // )
 
     this.context.uniform1i(location, index)
 
