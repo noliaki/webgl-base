@@ -2,10 +2,9 @@ uniform float uTime;
 uniform vec2 uResolution;
 
 uniform sampler2D tex1;
-uniform vec2 tex1Resolution;
-
 uniform sampler2D tex2;
-uniform vec2 tex2Resolution;
+
+uniform vec2 texResolution;
 
 uniform sampler2D texFilter;
 uniform vec2 texFilterResolution;
@@ -38,31 +37,34 @@ vec2 imageUv(vec2 resolution, vec2 imageResolution, vec2 uv){
 }
 
 void main(void){
-  float sinTime = sin(uTime * timeRate);
+  // float sinTime = sin(uTime * timeRate);
   vec2 uv = vec2(gl_FragCoord.xy / uResolution.xy);
-  float delay = ((abs(uv.x * 2.0 - 1.0) + abs(uv.y * 2.0 - 1.0)) * 0.5);
-  float progress = clamp(((sinTime + 1.0) * 0.5) - delay * maxDelay, 0.0, duration) / duration;
-  float revProgress = 1.0 - progress;
-  float currentScale = progress < 0.5
-    ? (1.0 - smoothstep(0.0, 0.5, progress)) * (1.0 / scale) + 1.0 - (1.0 / scale)
-    : smoothstep(0.5, 1.0, progress) * (1.0 / scale) + 1.0 - (1.0 / scale);
-  float noise = pow(snoise(vec3(uv, uTime * 0.0003)), 1.2);
-  vec2 tex1Pix = imageUv(uResolution, tex1Resolution, uv) * 2.0 - 1.0;
-  vec2 tex2Pix = imageUv(uResolution, tex2Resolution, uv) * 2.0 - 1.0;
+  // float delay = ((abs(uv.x * 2.0 - 1.0) + abs(uv.y * 2.0 - 1.0)) * 0.5);
+  // float progress = clamp(((sinTime + 1.0) * 0.5) - delay * maxDelay, 0.0, duration) / duration;
+  // float revProgress = 1.0 - progress;
+  // float currentScale = progress < 0.5
+  //   ? (1.0 - smoothstep(0.0, 0.5, progress)) * (1.0 / scale) + 1.0 - (1.0 / scale)
+  //   : smoothstep(0.5, 1.0, progress) * (1.0 / scale) + 1.0 - (1.0 / scale);
+  // float noise = pow(snoise(vec3(uv, uTime * 0.0003)), 1.2);
+  // vec2 tex1Pix = imageUv(uResolution, tex1Resolution, uv) * 2.0 - 1.0;
+  // vec2 tex2Pix = imageUv(uResolution, tex2Resolution, uv) * 2.0 - 1.0;
 
-  vec2 p = (gl_FragCoord.xy / min(uResolution.x, uResolution.y)) * 2.0 - 1.0;
+  // vec2 p = (gl_FragCoord.xy / min(uResolution.x, uResolution.y)) * 2.0 - 1.0;
 
-  vec4 filterColor = texture2D(texFilter, uv * noise);
-  float filterAvg = (((filterColor.x + filterColor.y + filterColor.z) / 3.0) * 2.0 - 1.0);
+  // vec4 filterColor = texture2D(texFilter, uv * noise);
+  // float filterAvg = (((filterColor.x + filterColor.y + filterColor.z) / 3.0) * 2.0 - 1.0);
 
   vec4 tex1Color = texture2D(
     tex1,
-    ((vec2(tex1Pix.x, - tex1Pix.y) * currentScale + 1.0) / 2.0) + (filterAvg * progress)
+    uv
   );
   vec4 tex2Color = texture2D(
     tex2,
-    ((vec2(tex2Pix.x, - tex2Pix.y) * currentScale + 1.0) / 2.0) + (filterAvg * revProgress)
+    uv
   );
 
-  gl_FragColor = mix(tex1Color, tex2Color, progress);
+  vec4 diffColor = abs(tex1Color - tex2Color);
+  float diffAvg = (diffColor.x + diffColor.y + diffColor.z) / 3.0;
+
+  gl_FragColor = vec4(tex1Color.xyz * diffAvg, 1.0);
 }

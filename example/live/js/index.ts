@@ -58,6 +58,8 @@ const base = WebGlBase.createBase({
   fragmentShader,
 })
 
+let flip = false
+
 // base.uniform.register({
 //   name: 'uMvp',
 //   value: mvp.values,
@@ -147,6 +149,7 @@ videoEl.addEventListener(
       '/texture/img/cat.jpg',
       base.texture.maxTextureSize
     )
+
     const filter = await loadImage(
       '/texture/img/cloud.png',
       base.texture.maxTextureSize
@@ -185,7 +188,7 @@ videoEl.addEventListener(
     })
     base.texture.register({
       name: 'tex2',
-      texture: texture2.textureSource,
+      texture: videoEl,
     })
     base.texture.register({
       name: 'texFilter',
@@ -193,14 +196,9 @@ videoEl.addEventListener(
     })
 
     base.uniform.register({
-      name: 'tex1Resolution',
+      name: 'texResolution',
       type: '2fv',
       value: [640, 480],
-    })
-    base.uniform.register({
-      name: 'tex2Resolution',
-      type: '2fv',
-      value: [texture2.naturalWidth, texture2.naturalHeight],
     })
 
     base.uniform.register({
@@ -278,11 +276,13 @@ function update() {
     value: Date.now() - start,
   })
   base.texture.updateTexture({
-    name: 'tex1',
+    name: flip ? 'tex1' : 'tex2',
     texture: videoEl,
   })
   base.draw.update()
   base.flush()
+
+  flip = !flip
 
   window.requestAnimationFrame(() => {
     update()
