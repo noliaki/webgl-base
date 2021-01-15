@@ -45,26 +45,28 @@ void main(void){
   // float currentScale = progress < 0.5
   //   ? (1.0 - smoothstep(0.0, 0.5, progress)) * (1.0 / scale) + 1.0 - (1.0 / scale)
   //   : smoothstep(0.5, 1.0, progress) * (1.0 / scale) + 1.0 - (1.0 / scale);
-  // float noise = pow(snoise(vec3(uv, uTime * 0.0003)), 1.2);
-  // vec2 tex1Pix = imageUv(uResolution, tex1Resolution, uv) * 2.0 - 1.0;
-  // vec2 tex2Pix = imageUv(uResolution, tex2Resolution, uv) * 2.0 - 1.0;
+  float noise = snoise(vec3(uv, uTime * 0.0003));
+  vec2 texPix = imageUv(uResolution, texResolution, uv) * 2.0 - 1.0;
 
   // vec2 p = (gl_FragCoord.xy / min(uResolution.x, uResolution.y)) * 2.0 - 1.0;
 
-  // vec4 filterColor = texture2D(texFilter, uv * noise);
-  // float filterAvg = (((filterColor.x + filterColor.y + filterColor.z) / 3.0) * 2.0 - 1.0);
+  vec4 filterColor = texture2D(texFilter, uv * (noise + 1.0) * 0.5);
+  float filterAvg = (((filterColor.x + filterColor.y + filterColor.z) / 3.0) * 2.0 - 1.0);
 
   vec4 tex1Color = texture2D(
     tex1,
-    uv
+    vec2(1.0 - uv.x, 1.0 - uv.y) + (snoise(vec3(uv, uTime * 0.0003)) * 0.05)
   );
   vec4 tex2Color = texture2D(
     tex2,
-    uv
+    vec2(1.0 - uv.x, 1.0 - uv.y) + (snoise(vec3(uv, uTime * 0.0002)) * 0.01)
   );
 
   vec4 diffColor = abs(tex1Color - tex2Color);
   float diffAvg = (diffColor.x + diffColor.y + diffColor.z) / 3.0;
 
-  gl_FragColor = vec4(tex1Color.xyz * diffAvg, 1.0);
+  gl_FragColor = vec4(
+    tex1Color.xyz * (1.0 - diffAvg) * (1.0 - filterAvg),
+    1.0
+  );
 }
