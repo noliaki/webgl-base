@@ -3,18 +3,19 @@ import vertexShader from './vertex-shader/index'
 import fragmentShader from './fragment-shader.glsl'
 import { Vector3, Matrix4 } from 'matrixgl'
 import { createTriangle } from './Triangle'
+import { debounce } from '../../utils'
 
 const start: number = Date.now()
 
-const camera = new Vector3(0, 0, -1)
+const camera = new Vector3(0, 0, 1)
 const lookAt = new Vector3(0, 0, 0)
 const cameraUpDirection = new Vector3(0, 1, 0)
 
 const view = Matrix4.lookAt(camera, lookAt, cameraUpDirection)
 const perspective = Matrix4.perspective({
-  fovYRadian: 120,
+  fovYRadian: 180,
   aspectRatio: window.innerWidth / window.innerHeight,
-  near: 0.1,
+  near: 1,
   far: 2000,
 })
 
@@ -123,6 +124,16 @@ base.flush()
 //   stride: (3 + 4) * bytesByType.FLOAT,
 // })
 
+window.addEventListener(
+  'resize',
+  debounce(() => {
+    base.resize(window.innerWidth, window.innerHeight)
+  }, 300),
+  {
+    passive: true,
+  }
+)
+
 function update() {
   base.clear()
   base.uniform.update({
@@ -142,8 +153,8 @@ function createTriangleParticleData(vol = particleNum): Float32Array {
 
   for (let i = 0; i < vol; i++) {
     const triangleData = createTriangle({
-      position: [Math.random() * -2 + 1, Math.random() * -2 + 1, 0],
-      size: Math.random() * 0.02 + 0.01,
+      position: [Math.random() * -10 + 5, Math.random() * -10 + 5, -1],
+      size: Math.random() * 0.5 + 0.1,
     })
 
     data = data.concat(triangleData)
