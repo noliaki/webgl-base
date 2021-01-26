@@ -46,7 +46,7 @@ void main(void){
   // float currentScale = progress < 0.5
   //   ? (1.0 - smoothstep(0.0, 0.5, progress)) * (1.0 / scale) + 1.0 - (1.0 / scale)
   //   : smoothstep(0.5, 1.0, progress) * (1.0 / scale) + 1.0 - (1.0 / scale);
-  float noise = snoise(vec3(uv, uTime * 0.0003));
+  float noise = (snoise(vec3(uv, uTime * 0.0003)) + 1.0) / 2.0;
   vec2 texPix = imageUv(uResolution, texResolution, uv) * 2.0 - 1.0;
 
   // vec2 p = (gl_FragCoord.xy / min(uResolution.x, uResolution.y)) * 2.0 - 1.0;
@@ -71,7 +71,7 @@ void main(void){
   float diffAvg = 1.0 - (diffColor.x + diffColor.y + diffColor.z) / 3.0;
 
   gl_FragColor = vec4(
-    uTime / 10000.0 > 0.5 ? selfColor.rgb : 1.0 - diffColor.rgb,
+    noise - diffColor.rgb,
     1.0
   );
 }

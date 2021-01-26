@@ -3,7 +3,7 @@ import vertexShader from './vertex-shader.glsl'
 import fragmentShader from './fragment-shader'
 // import { Vector3, Matrix4 } from 'matrixgl'
 import { createSquare } from './Square'
-import { loadImage } from './helper'
+// import { loadImage } from './helper'
 
 const videoEl = document.querySelector('video')
 const canvasEl = document.getElementById('c') as HTMLCanvasElement
@@ -33,10 +33,10 @@ videoEl.addEventListener(
     //   base.texture.maxTextureSize
     // )
 
-    const filter = await loadImage(
-      '/texture/img/cloud.png',
-      base.texture.maxTextureSize
-    )
+    // const filter = await loadImage(
+    //   '/texture/img/cloud.png',
+    //   base.texture.maxTextureSize
+    // )
 
     base.uniform.register({
       name: 'uResolution',
@@ -88,11 +88,11 @@ videoEl.addEventListener(
       value: [640, 480],
     })
 
-    base.uniform.register({
-      name: 'texFilterResolution',
-      type: '2fv',
-      value: [filter.naturalWidth, filter.naturalHeight],
-    })
+    // base.uniform.register({
+    //   name: 'texFilterResolution',
+    //   type: '2fv',
+    //   value: [filter.naturalWidth, filter.naturalHeight],
+    // })
 
     base.draw.elements({
       mode: 'TRIANGLES',
@@ -140,3 +140,15 @@ async function startStream(): Promise<void> {
 }
 
 startStream()
+
+document.addEventListener('click', () => {
+  const canvas = document.createElement('canvas')
+
+  document.body.appendChild(canvas)
+  canvas.width = canvasEl.width
+  canvas.height = canvasEl.height
+
+  const context = canvas.getContext('2d')
+
+  context.drawImage(base.context.canvas, 0, 0)
+})
