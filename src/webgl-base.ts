@@ -65,8 +65,12 @@ export class WebGlBase {
     fragmentShader,
   }: ConstructorArgs) {
     this.canvas = canvas
-    this.context = (this.canvas.getContext('webgl') ||
-      this.canvas.getContext('experimental-webgl')) as WebGLRenderingContext
+    this.context = (this.canvas.getContext('webgl', {
+      preserveDrawingBuffer: true,
+    }) ||
+      this.canvas.getContext('experimental-webgl', {
+        preserveDrawingBuffer: true,
+      })) as WebGLRenderingContext
 
     this.clearColor = [...clearColor]
 

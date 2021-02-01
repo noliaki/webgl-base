@@ -150,5 +150,5 @@ document.addEventListener('click', () => {
 
   const context = canvas.getContext('2d')
 
-  context.drawImage(base.context.canvas, 0, 0)
+  context.drawImage(canvasEl, 0, 0, canvasEl.width, canvasEl.height)
 })

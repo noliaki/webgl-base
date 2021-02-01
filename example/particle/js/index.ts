@@ -35,9 +35,11 @@ const lightDirection = new Vector3(0.5, 0.7, 1)
 const particleNum = 1000
 const particles = createTriangleParticleData()
 
+const canvasEl = document.getElementById('c') as HTMLCanvasElement
+
 const base = WebGlBase.createBase({
   clearColor: [0, 0, 0, 1],
-  canvas: document.getElementById('c') as HTMLCanvasElement,
+  canvas: canvasEl,
   // width: 300,
   // height: 300,
   vertexShader,
@@ -143,9 +145,9 @@ function update() {
   base.draw.update()
   base.flush()
 
-  window.requestAnimationFrame(() => {
-    update()
-  })
+  // window.requestAnimationFrame(() => {
+  //   update()
+  // })
 }
 
 function createTriangleParticleData(vol = particleNum): Float32Array {
@@ -173,3 +175,15 @@ function firstDraw(): void {
 }
 
 update()
+
+document.addEventListener('click', () => {
+  const canvas = document.createElement('canvas')
+
+  document.body.appendChild(canvas)
+  canvas.width = canvasEl.width
+  canvas.height = canvasEl.height
+
+  const context = canvas.getContext('2d')
+
+  context.drawImage(canvasEl, 0, 0, canvasEl.width, canvasEl.height)
+})
