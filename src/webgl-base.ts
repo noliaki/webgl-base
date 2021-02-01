@@ -29,6 +29,7 @@ type ConstructorArgs = {
   clearColor?: [number, number, number, number]
   width?: number
   height?: number
+  contextAttribute?: WebGLContextAttributes
   vertexShader: string
   fragmentShader: string
 }
@@ -63,14 +64,16 @@ export class WebGlBase {
     height,
     vertexShader,
     fragmentShader,
+    contextAttribute,
   }: ConstructorArgs) {
     this.canvas = canvas
-    this.context = (this.canvas.getContext('webgl', {
-      preserveDrawingBuffer: true,
-    }) ||
-      this.canvas.getContext('experimental-webgl', {
-        preserveDrawingBuffer: true,
-      })) as WebGLRenderingContext
+    this.context = (this.canvas.getContext('webgl', contextAttribute) ||
+      this.canvas.getContext(
+        'experimental-webgl',
+        contextAttribute
+      )) as WebGLRenderingContext
+
+    console.log(this.context.getContextAttributes())
 
     this.clearColor = [...clearColor]
 
@@ -97,6 +100,18 @@ export class WebGlBase {
     clearColor = [0, 0, 0, 1],
     width = window.innerWidth,
     height = window.innerHeight,
+    contextAttribute = {
+      alpha: true,
+      antialias: true,
+      depth: true,
+      desynchronized: false,
+      failIfMajorPerformanceCaveat: false,
+      powerPreference: 'default',
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+      stencil: false,
+      // xrCompatible: false,
+    },
     vertexShader,
     fragmentShader,
   }: ConstructorArgs): WebGlBase {
@@ -111,6 +126,7 @@ export class WebGlBase {
       height,
       vertexShader,
       fragmentShader,
+      contextAttribute: Object.assign({}, contextAttribute),
     })
   }
 

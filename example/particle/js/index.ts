@@ -38,12 +38,15 @@ const particles = createTriangleParticleData()
 const canvasEl = document.getElementById('c') as HTMLCanvasElement
 
 const base = WebGlBase.createBase({
-  clearColor: [0, 0, 0, 1],
+  clearColor: [0, 0, 0, 0.4],
   canvas: canvasEl,
   // width: 300,
   // height: 300,
   vertexShader,
   fragmentShader,
+  contextAttribute: {
+    preserveDrawingBuffer: true,
+  },
 })
 base.uniform.register({
   name: 'uTime',
@@ -137,7 +140,7 @@ window.addEventListener(
 )
 
 function update() {
-  base.clear()
+  // base.clear()
   base.uniform.update({
     name: 'uTime',
     value: Date.now() - start,
@@ -145,9 +148,9 @@ function update() {
   base.draw.update()
   base.flush()
 
-  // window.requestAnimationFrame(() => {
-  //   update()
-  // })
+  window.requestAnimationFrame(() => {
+    update()
+  })
 }
 
 function createTriangleParticleData(vol = particleNum): Float32Array {
@@ -175,15 +178,3 @@ function firstDraw(): void {
 }
 
 update()
-
-document.addEventListener('click', () => {
-  const canvas = document.createElement('canvas')
-
-  document.body.appendChild(canvas)
-  canvas.width = canvasEl.width
-  canvas.height = canvasEl.height
-
-  const context = canvas.getContext('2d')
-
-  context.drawImage(canvasEl, 0, 0, canvasEl.width, canvasEl.height)
-})
