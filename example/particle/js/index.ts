@@ -140,7 +140,7 @@ window.addEventListener(
 )
 
 function update() {
-  // base.clear()
+  base.clear()
   base.uniform.update({
     name: 'uTime',
     value: Date.now() - start,

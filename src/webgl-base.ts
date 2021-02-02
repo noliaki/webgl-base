@@ -89,6 +89,16 @@ export class WebGlBase {
 
     // this.context.enable(this.context.CULL_FACE)
     this.context.enable(this.context.DEPTH_TEST)
+    this.context.enable(this.context.BLEND)
+
+    this.context.blendEquation(this.context.FUNC_ADD)
+    this.context.blendFunc(
+      this.context.CONSTANT_ALPHA,
+      this.context.SRC_ALPHA_SATURATE
+    )
+    // this.context.blendEquation(this.context.FUNC_ADD)
+    // this.context.blendFunc(this.context.SRC_ALPHA, this.context.ONE)
+
     this.context.depthFunc(this.context.LEQUAL)
 
     this.resize(width, height)
